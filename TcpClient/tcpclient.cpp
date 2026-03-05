@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QHostAddress>
+#include "protocol.h"
 
 TcpClient::TcpClient(QWidget *parent)
     : QWidget(parent)
@@ -44,3 +45,18 @@ void TcpClient::loadConfig()
     }
 }
 
+
+void TcpClient::on_sendQPushButton_clicked()
+{
+    QString strMsg = ui->lineEdit->text();
+    if (strMsg.isEmpty())
+    {
+        QMessageBox::warning(this, "message send", "message is not allow null");
+    }
+    PDU* pdu = makePDU(strMsg.size());
+    pdu->uiMsgType = 8888;
+    memcpy(pdu->caMsg, strMsg.toStdString().c_str(), strMsg.size());
+    m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
+}

@@ -1,16 +1,16 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'tcpclient.h'
+** Meta object code from reading C++ file 'mytcpsocket.h'
 **
 ** Created by: The Qt Meta Object Compiler version 67 (Qt 5.12.8)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "../../TcpClient/tcpclient.h"
+#include "../../TcpServer/mytcpsocket.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'tcpclient.h' doesn't include <QObject>."
+#error "The header file 'mytcpsocket.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
 #error "This file was generated using the moc from 5.12.8. It"
 #error "cannot be used with the include files from this version of Qt."
@@ -20,28 +20,27 @@
 QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
-struct qt_meta_stringdata_TcpClient_t {
+struct qt_meta_stringdata_MyTcpSocket_t {
     QByteArrayData data[3];
-    char stringdata0[38];
+    char stringdata0[21];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_TcpClient_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_MyTcpSocket_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_TcpClient_t qt_meta_stringdata_TcpClient = {
+static const qt_meta_stringdata_MyTcpSocket_t qt_meta_stringdata_MyTcpSocket = {
     {
-QT_MOC_LITERAL(0, 0, 9), // "TcpClient"
-QT_MOC_LITERAL(1, 10, 26), // "on_sendQPushButton_clicked"
-QT_MOC_LITERAL(2, 37, 0) // ""
+QT_MOC_LITERAL(0, 0, 11), // "MyTcpSocket"
+QT_MOC_LITERAL(1, 12, 7), // "recvMsg"
+QT_MOC_LITERAL(2, 20, 0) // ""
 
     },
-    "TcpClient\0on_sendQPushButton_clicked\0"
-    ""
+    "MyTcpSocket\0recvMsg\0"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_TcpClient[] = {
+static const uint qt_meta_data_MyTcpSocket[] = {
 
  // content:
        8,       // revision
@@ -55,7 +54,7 @@ static const uint qt_meta_data_TcpClient[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   19,    2, 0x08 /* Private */,
+       1,    0,   19,    2, 0x0a /* Public */,
 
  // slots: parameters
     QMetaType::Void,
@@ -63,45 +62,45 @@ static const uint qt_meta_data_TcpClient[] = {
        0        // eod
 };
 
-void TcpClient::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void MyTcpSocket::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
-        auto *_t = static_cast<TcpClient *>(_o);
+        auto *_t = static_cast<MyTcpSocket *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->on_sendQPushButton_clicked(); break;
+        case 0: _t->recvMsg(); break;
         default: ;
         }
     }
     Q_UNUSED(_a);
 }
 
-QT_INIT_METAOBJECT const QMetaObject TcpClient::staticMetaObject = { {
-    &QWidget::staticMetaObject,
-    qt_meta_stringdata_TcpClient.data,
-    qt_meta_data_TcpClient,
+QT_INIT_METAOBJECT const QMetaObject MyTcpSocket::staticMetaObject = { {
+    &QTcpSocket::staticMetaObject,
+    qt_meta_stringdata_MyTcpSocket.data,
+    qt_meta_data_MyTcpSocket,
     qt_static_metacall,
     nullptr,
     nullptr
 } };
 
 
-const QMetaObject *TcpClient::metaObject() const
+const QMetaObject *MyTcpSocket::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *TcpClient::qt_metacast(const char *_clname)
+void *MyTcpSocket::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
-    if (!strcmp(_clname, qt_meta_stringdata_TcpClient.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_MyTcpSocket.stringdata0))
         return static_cast<void*>(this);
-    return QWidget::qt_metacast(_clname);
+    return QTcpSocket::qt_metacast(_clname);
 }
 
-int TcpClient::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int MyTcpSocket::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = QWidget::qt_metacall(_c, _id, _a);
+    _id = QTcpSocket::qt_metacall(_c, _id, _a);
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {

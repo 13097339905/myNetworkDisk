@@ -20,6 +20,9 @@ public:
     // 读取配置文件中的信息
     void loadConfig();
 
+private slots:
+    void on_sendQPushButton_clicked();
+
 private:
     Ui::TcpClient *ui;
     QString m_strIP;        // 读取到的ip，存储到m_strIP
