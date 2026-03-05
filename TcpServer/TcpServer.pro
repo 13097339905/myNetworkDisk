@@ -1,4 +1,4 @@
-QT       += core gui network    # 加入网络编程模块
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,13 +17,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
-    tcpclient.cpp
+    mytcpserver.cpp \
+    tcpserver.cpp
 
 HEADERS += \
-    tcpclient.h
+    mytcpserver.h \
+    tcpserver.h
 
 FORMS += \
-    tcpclient.ui
+    tcpserver.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

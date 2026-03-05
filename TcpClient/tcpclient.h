@@ -2,7 +2,8 @@
 #define TCPCLIENT_H
 
 #include <QWidget>
-#include <QFile>      // 用来读取配置文件中的连接信息，IP、端口号
+#include <QTcpSocket> // 用来连接服务器
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class TcpClient; }
@@ -23,5 +24,7 @@ private:
     Ui::TcpClient *ui;
     QString m_strIP;        // 读取到的ip，存储到m_strIP
     quint16 m_usPort;       // 读取的端口号，存储到m_usPort，quint16，无符号16位，2个字节，就是unsigned short
+    QTcpSocket m_tcpSocket; // 连接服务器，与服务器进行数据交互
+
 };
 #endif // TCPCLIENT_H
