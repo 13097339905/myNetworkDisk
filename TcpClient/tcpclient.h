@@ -2,8 +2,7 @@
 #define TCPCLIENT_H
 
 #include <QWidget>
-#include <QTcpSocket> // 用来连接服务器
-
+#include <QTcpSocket>     // 用来连接服务器
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class TcpClient; }
@@ -21,8 +20,15 @@ public:
     void loadConfig();
 
 private slots:
-    // 点击发送按钮后进行数据发送
-    void on_sendQPushButton_clicked();
+//    // 点击发送按钮后进行数据发送
+//    void on_sendQPushButton_clicked();
+
+    void on_registerPushButton_clicked();
+
+    void on_cancellationPushButton_clicked();
+
+
+    void recvMsg();
 
 private:
     Ui::TcpClient *ui;

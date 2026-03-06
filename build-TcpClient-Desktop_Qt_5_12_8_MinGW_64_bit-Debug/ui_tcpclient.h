@@ -11,10 +11,10 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 
@@ -23,44 +23,84 @@ QT_BEGIN_NAMESPACE
 class Ui_TcpClient
 {
 public:
+    QWidget *layoutWidget;
     QVBoxLayout *verticalLayout_2;
     QVBoxLayout *verticalLayout;
-    QTextEdit *textEdit;
-    QHBoxLayout *horizontalLayout;
-    QLineEdit *lineEdit;
-    QPushButton *sendQPushButton;
+    QGridLayout *gridLayout;
+    QLabel *label_3;
+    QLineEdit *passwordLineEdit;
+    QLabel *label;
+    QLineEdit *usernameLineEdit;
+    QPushButton *loginPushButtone;
+    QPushButton *registerPushButton;
+    QPushButton *cancellationPushButton;
 
     void setupUi(QWidget *TcpClient)
     {
         if (TcpClient->objectName().isEmpty())
             TcpClient->setObjectName(QString::fromUtf8("TcpClient"));
-        TcpClient->resize(645, 511);
-        verticalLayout_2 = new QVBoxLayout(TcpClient);
+        TcpClient->resize(495, 263);
+        layoutWidget = new QWidget(TcpClient);
+        layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
+        layoutWidget->setGeometry(QRect(20, 20, 443, 208));
+        verticalLayout_2 = new QVBoxLayout(layoutWidget);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
+        verticalLayout_2->setContentsMargins(0, 0, 0, 0);
         verticalLayout = new QVBoxLayout();
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
-        textEdit = new QTextEdit(TcpClient);
-        textEdit->setObjectName(QString::fromUtf8("textEdit"));
+        gridLayout = new QGridLayout();
+        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+        label_3 = new QLabel(layoutWidget);
+        label_3->setObjectName(QString::fromUtf8("label_3"));
+        QFont font;
+        font.setFamily(QString::fromUtf8("AniMe Vision - MB_EN"));
+        font.setPointSize(14);
+        label_3->setFont(font);
 
-        verticalLayout->addWidget(textEdit);
+        gridLayout->addWidget(label_3, 1, 0, 1, 1);
 
-        horizontalLayout = new QHBoxLayout();
-        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
-        lineEdit = new QLineEdit(TcpClient);
-        lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
+        passwordLineEdit = new QLineEdit(layoutWidget);
+        passwordLineEdit->setObjectName(QString::fromUtf8("passwordLineEdit"));
+        passwordLineEdit->setFont(font);
+        passwordLineEdit->setEchoMode(QLineEdit::Password);
 
-        horizontalLayout->addWidget(lineEdit);
+        gridLayout->addWidget(passwordLineEdit, 1, 1, 1, 1);
 
-        sendQPushButton = new QPushButton(TcpClient);
-        sendQPushButton->setObjectName(QString::fromUtf8("sendQPushButton"));
+        label = new QLabel(layoutWidget);
+        label->setObjectName(QString::fromUtf8("label"));
+        label->setFont(font);
 
-        horizontalLayout->addWidget(sendQPushButton);
+        gridLayout->addWidget(label, 0, 0, 1, 1);
+
+        usernameLineEdit = new QLineEdit(layoutWidget);
+        usernameLineEdit->setObjectName(QString::fromUtf8("usernameLineEdit"));
+        usernameLineEdit->setFont(font);
+
+        gridLayout->addWidget(usernameLineEdit, 0, 1, 1, 1);
 
 
-        verticalLayout->addLayout(horizontalLayout);
+        verticalLayout->addLayout(gridLayout);
+
+        loginPushButtone = new QPushButton(layoutWidget);
+        loginPushButtone->setObjectName(QString::fromUtf8("loginPushButtone"));
+        loginPushButtone->setFont(font);
+
+        verticalLayout->addWidget(loginPushButtone);
 
 
         verticalLayout_2->addLayout(verticalLayout);
+
+        registerPushButton = new QPushButton(layoutWidget);
+        registerPushButton->setObjectName(QString::fromUtf8("registerPushButton"));
+        registerPushButton->setFont(font);
+
+        verticalLayout_2->addWidget(registerPushButton);
+
+        cancellationPushButton = new QPushButton(layoutWidget);
+        cancellationPushButton->setObjectName(QString::fromUtf8("cancellationPushButton"));
+        cancellationPushButton->setFont(font);
+
+        verticalLayout_2->addWidget(cancellationPushButton);
 
 
         retranslateUi(TcpClient);
@@ -71,7 +111,11 @@ public:
     void retranslateUi(QWidget *TcpClient)
     {
         TcpClient->setWindowTitle(QApplication::translate("TcpClient", "TcpClient", nullptr));
-        sendQPushButton->setText(QApplication::translate("TcpClient", "send", nullptr));
+        label_3->setText(QApplication::translate("TcpClient", "\345\257\206   \347\240\201\357\274\232", nullptr));
+        label->setText(QApplication::translate("TcpClient", "\347\224\250\346\210\267\345\220\215:", nullptr));
+        loginPushButtone->setText(QApplication::translate("TcpClient", "\347\231\273\345\275\225", nullptr));
+        registerPushButton->setText(QApplication::translate("TcpClient", "\346\263\250\345\206\214", nullptr));
+        cancellationPushButton->setText(QApplication::translate("TcpClient", "\346\263\250\351\224\200", nullptr));
     } // retranslateUi
 
 };

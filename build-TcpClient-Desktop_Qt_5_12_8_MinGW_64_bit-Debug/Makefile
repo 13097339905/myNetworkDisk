@@ -251,6 +251,7 @@ Makefile: ../TcpClient/TcpClient.pro ../../../Application/QT/5.12.8/mingw73_64/m
 		../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Widgets.prl \
 		../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Gui.prl \
 		../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Network.prl \
+		../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Sql.prl \
 		../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Core.prl \
 		../../../Application/QT/5.12.8/mingw73_64/lib/qtmain.prl
 	$(QMAKE) -o Makefile ..\TcpClient\TcpClient.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
@@ -442,6 +443,7 @@ Makefile: ../TcpClient/TcpClient.pro ../../../Application/QT/5.12.8/mingw73_64/m
 ../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Widgets.prl:
 ../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Gui.prl:
 ../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Network.prl:
+../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Sql.prl:
 ../../../Application/QT/5.12.8/mingw73_64/lib/Qt5Core.prl:
 ../../../Application/QT/5.12.8/mingw73_64/lib/qtmain.prl:
 qmake: FORCE

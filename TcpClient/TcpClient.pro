@@ -1,4 +1,4 @@
-QT       += core gui network    # 加入网络编程模块
+QT       += core gui network sql    # 加入网络编程模块和数据库编程模块
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

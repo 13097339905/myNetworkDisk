@@ -21,6 +21,12 @@ public:
     // 初始化数据库连接
     void init();
 
+    // 插入用户信息
+    bool insertUserInfo(const QString username, const QString password);
+
+    // 删除用户信息
+    bool deleteUserInfo(const QString username, const QString password);
+
 signals:
 
 private:

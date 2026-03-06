@@ -1,6 +1,7 @@
 #include "mytcpsocket.h"
 #include <QDebug>
 #include "protocol.h"
+#include "operatedb.h"
 
 MyTcpSocket::MyTcpSocket()
 {
@@ -17,5 +18,33 @@ void MyTcpSocket::recvMsg()
     // (char*)pdu + sizeof(uint):前四个字节之前已经读完了，所以要读到pud偏移之前读的位置上
     // uiPDULen - sizeof(uint):之前读的不用读了，所以要减去
     this->read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));
-    qDebug() << pdu->uiMsgLen << " " << (char*)pdu->caMsg;
+    // qDebug() << pdu->uiMsgType << username << password;
+
+    switch (pdu->uiMsgType)
+    {
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_REQUEST):   // 注册请求
+        {
+            char username[32];
+            char password[32];
+            strncpy(username, pdu->caData, 32);
+            strncpy(password, pdu->caData + 32, 32);
+            PDU* respondPdu = makePDU(0);
+            respondPdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND);
+
+            if (OperateDB::getInstance().insertUserInfo(username, password))   // 插入成功
+            {
+                strcpy(respondPdu->caData, REGISTER_SUCCESSED);             // 向客户端发送成功的消息
+            }
+            else
+            {
+                strcpy(respondPdu->caData, REGISTER_FAILED);                // 向客户端发送失败的消息
+            }
+            this->write((char*)respondPdu, respondPdu->uiPDULen);
+            free(respondPdu);
+            respondPdu = nullptr;
+            break;
+        }
+    }
+    free(pdu);
+    pdu = nullptr;
 }

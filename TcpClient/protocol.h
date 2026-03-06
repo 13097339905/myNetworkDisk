@@ -3,6 +3,17 @@
 
 typedef unsigned int uint;
 
+#define REGISTER_SUCCESSED    "register successed"
+#define REGISTER_FAILED       "register failed : username existed"
+
+enum class ENUM_MSG_TYPE
+{
+    ENUM_MSG_TYPE_MIN = 0,             // 最小值，用于边界检查
+    ENUM_MSG_TYPE_REGISTER_REQUEST,    // 注册请求
+    ENUM_MSG_TYPE_REGISTER_RESPOND,    // 注册回复
+    ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
+};
+
 struct PDU
 {
     uint uiPDULen;       // 整个PDU的总长度，包括头部和数据部分
