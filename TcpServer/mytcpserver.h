@@ -10,7 +10,9 @@ class MyTcpServer : public QTcpServer
 {
     Q_OBJECT
 private:
-    MyTcpServer();
+    MyTcpServer();      // 构造函数私有化
+    MyTcpServer(const MyTcpServer&) = delete;    // 拷贝构造函数私有化或者delete掉
+    MyTcpServer& operator=(const MyTcpServer&) = delete;   // 赋值重载也私有化或者delete掉
     QList<MyTcpSocket*> m_tcpSocketList;
 
 public:
