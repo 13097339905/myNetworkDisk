@@ -16,7 +16,7 @@ TcpClient::TcpClient(QWidget *parent)
 
     m_tcpSocket.connectToHost(QHostAddress(m_strIP), m_usPort);     // 与服务器进行连接
 
-    connect(&m_tcpSocket, &QTcpSocket::connected, this, [this](){
+    connect(&m_tcpSocket, &QTcpSocket::connected, this, [this](){   // 如果连接上了，就会发出已连接的信号，调用槽函数
         QMessageBox::information(this, "connect server", "connect server success");
     });
 }
@@ -26,6 +26,7 @@ TcpClient::~TcpClient()
     delete ui;
 }
 
+// 读取配置文件中的信息（ip，端口号）
 void TcpClient::loadConfig()
 {
     // .qrc就是一份资源清单，Qt会根据这份清单把指定文件嵌入程序，最终通过 :前缀名 进行路径访问
@@ -45,18 +46,18 @@ void TcpClient::loadConfig()
     }
 }
 
-
+// 点击发送按钮后进行数据发送
 void TcpClient::on_sendQPushButton_clicked()
 {
-    QString strMsg = ui->lineEdit->text();
+    QString strMsg = ui->lineEdit->text();     // 获取输入框的文本
     if (strMsg.isEmpty())
     {
         QMessageBox::warning(this, "message send", "message is not allow null");
     }
-    PDU* pdu = makePDU(strMsg.size());
-    pdu->uiMsgType = 8888;
-    memcpy(pdu->caMsg, strMsg.toStdString().c_str(), strMsg.size());
-    m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
-    free(pdu);
+    PDU* pdu = makePDU(strMsg.size());         // 创建一个PDU，用来发送消息类型
+    pdu->uiMsgType = 8888;                     // 设置PDU的消息类型
+    memcpy( pdu->caMsg, strMsg.toStdString().c_str(), strMsg.size());  // 将要发送的数据拷贝到pdu里面
+    m_tcpSocket.write((char*)pdu, pdu->uiPDULen);      // 发送数据
+    free(pdu);        // 释放内存
     pdu = nullptr;
 }

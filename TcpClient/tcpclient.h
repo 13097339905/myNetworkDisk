@@ -21,6 +21,7 @@ public:
     void loadConfig();
 
 private slots:
+    // 点击发送按钮后进行数据发送
     void on_sendQPushButton_clicked();
 
 private:
