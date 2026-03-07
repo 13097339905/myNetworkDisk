@@ -56,7 +56,8 @@ bool OperateDB::insertUserInfo(const QString username, const QString password)
     query.bindValue(":username", username);
     query.bindValue(":password", password);
 
-    if (!query.exec()) {
+    if (!query.exec())
+    {
         qDebug() << "插入失败:" << query.lastError().text();
         return false;
     }
@@ -70,9 +71,49 @@ bool OperateDB::deleteUserInfo(const QString username, const QString password)
     query.bindValue(":username", username);
     query.bindValue(":password", password);
 
-    if (!query.exec()) {
+    if (!query.exec())
+    {
         qDebug() << "删除失败:" << query.lastError().text();
         return false;
     }
     return true;
+}
+
+bool OperateDB::selectUserInfo(const QString username, const QString password)
+{
+    QSqlQuery query;
+    query.prepare("select * from userinfo where name = :username and pwd = :password and online = :online");
+    query.bindValue(":username", username);
+    query.bindValue(":password", password);
+    query.bindValue(":online", 0);
+    query.exec();
+
+    if (!query.next())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+void OperateDB::updateOnline(const QString username)
+{
+    QSqlQuery query;
+    query.prepare("select online from userinfo where name = :username");
+    query.bindValue(":username", username);
+    query.exec();
+    query.next();    // 判断是否查询到了
+    int online = query.value(0).toInt();
+
+    if (online == 1)
+        online = 0;
+    else
+        online = 1;
+    query.prepare("update userinfo set online = :online where name = :username");
+    query.bindValue(":online", online);
+    query.bindValue(":username", username);
+    if (!query.exec())
+    {
+        qDebug() << "更新失败:" << query.lastError().text();
+    }
 }

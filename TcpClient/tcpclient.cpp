@@ -66,6 +66,7 @@ void TcpClient::loadConfig()
 //}
 
 
+// 发送注册请求给服务器
 void TcpClient::on_registerPushButton_clicked()
 {
     QString username = ui->usernameLineEdit->text();     // 获取用户输入的用户名和密码
@@ -118,10 +119,10 @@ void TcpClient::recvMsg()
 
     switch (pdu->uiMsgType)
     {
-        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND):   // 注册请求
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND):   // 注册回复
         {
-            qDebug() << strcmp(pdu->caData, REGISTER_SUCCESSED);
-            qDebug() << strcmp(pdu->caData, REGISTER_FAILED);
+//            qDebug() << strcmp(pdu->caData, REGISTER_SUCCESSED);
+//            qDebug() << strcmp(pdu->caData, REGISTER_FAILED);
 
             if (strcmp(pdu->caData, REGISTER_SUCCESSED) == 0)    // 收到服务器传来的注册成功的消息
             {
@@ -132,7 +133,33 @@ void TcpClient::recvMsg()
                 QMessageBox::information(this, "register info", REGISTER_FAILED);
             }
         }
+
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND):     // 登录回复
+        {
+            if (strcmp(pdu->caData, LOGIN_SUCCESSED) == 0)    // 收到服务器传来的注册成功的消息
+            {
+                QMessageBox::information(this, "login info", LOGIN_SUCCESSED);
+            }
+            else if (strcmp(pdu->caData, LOGIN_FAILED) == 0)       // 收到服务器传来的注册失败的消息
+            {
+                QMessageBox::information(this, "login info", LOGIN_FAILED);
+            }
+        }
     }
+    free(pdu);
+    pdu = nullptr;
+}
+
+// 发送登录请求给服务器
+void TcpClient::on_loginPushButtone_clicked()
+{
+    QString username = ui->usernameLineEdit->text();
+    QString password = ui->passwordLineEdit->text();
+    PDU* pdu = makePDU(0);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_REQUEST);
+    strncpy(pdu->caData, username.toStdString().c_str(), 32);
+    strncpy(pdu->caData + 32, password.toStdString().c_str(), 32);
+    m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
     free(pdu);
     pdu = nullptr;
 }

@@ -27,6 +27,12 @@ public:
     // 删除用户信息
     bool deleteUserInfo(const QString username, const QString password);
 
+    // 查询用户信息
+    bool selectUserInfo(const QString username, const QString password);
+
+    // 更新用户信息
+    void updateOnline(const QString username);
+
 signals:
 
 private:

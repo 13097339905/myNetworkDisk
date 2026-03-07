@@ -6,6 +6,16 @@
 MyTcpSocket::MyTcpSocket()
 {
     connect(this, &MyTcpSocket::readyRead, this, &MyTcpSocket::recvMsg);
+
+    connect(this, &MyTcpSocket::disconnected, this, [this](){
+        OperateDB::getInstance().updateOnline(m_username);    // 改变在线状态
+        emit logout(this);
+    });
+}
+
+QString MyTcpSocket::getUsername()
+{
+    return m_username;
 }
 
 void MyTcpSocket::recvMsg()
@@ -22,28 +32,56 @@ void MyTcpSocket::recvMsg()
 
     switch (pdu->uiMsgType)
     {
-        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_REQUEST):   // 注册请求
-        {
-            char username[32];
-            char password[32];
-            strncpy(username, pdu->caData, 32);
-            strncpy(password, pdu->caData + 32, 32);
-            PDU* respondPdu = makePDU(0);
-            respondPdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND);
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_REQUEST):   // 注册请求
+    {
+        char username[32];
+        char password[32];
+        strncpy(username, pdu->caData, 32);
+        strncpy(password, pdu->caData + 32, 32);
+        PDU* respondPdu = makePDU(0);
+        respondPdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND);
 
-            if (OperateDB::getInstance().insertUserInfo(username, password))   // 插入成功
-            {
-                strcpy(respondPdu->caData, REGISTER_SUCCESSED);             // 向客户端发送成功的消息
-            }
-            else
-            {
-                strcpy(respondPdu->caData, REGISTER_FAILED);                // 向客户端发送失败的消息
-            }
-            this->write((char*)respondPdu, respondPdu->uiPDULen);
-            free(respondPdu);
-            respondPdu = nullptr;
-            break;
+        if (OperateDB::getInstance().insertUserInfo(username, password))   // 插入成功
+        {
+            strcpy(respondPdu->caData, REGISTER_SUCCESSED);             // 向客户端发送成功的消息
         }
+        else
+        {
+            strcpy(respondPdu->caData, REGISTER_FAILED);                // 向客户端发送失败的消息
+        }
+        this->write((char*)respondPdu, respondPdu->uiPDULen);
+        free(respondPdu);
+        respondPdu = nullptr;
+        break;
+    }
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_REQUEST):     // 登录请求
+    {
+        char username[32];
+        char password[32];
+        strncpy(username, pdu->caData, 32);
+        strncpy(password, pdu->caData + 32, 32);
+        PDU* loginPDU = makePDU(0);
+        loginPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND);
+
+        if (OperateDB::getInstance().selectUserInfo(username, password))
+        {
+            OperateDB::getInstance().updateOnline(username);
+            strcpy(loginPDU->caData, LOGIN_SUCCESSED);
+            m_username = username;       // 保存当前登录的用户，用于结束连接时将其在线状态改变
+        }
+        else
+        {
+            strcpy(loginPDU->caData, LOGIN_FAILED);
+        }
+        this->write((char*)loginPDU, loginPDU->uiPDULen);
+        free(loginPDU);
+        loginPDU = nullptr;
+        break;
+    }
+
+    default:
+        break;
     }
     free(pdu);
     pdu = nullptr;

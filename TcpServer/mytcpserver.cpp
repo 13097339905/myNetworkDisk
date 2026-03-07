@@ -19,4 +19,21 @@ void MyTcpServer::incomingConnection(qintptr socketDescriptor)
     MyTcpSocket* pTcpSocket = new MyTcpSocket;
     pTcpSocket->setSocketDescriptor(socketDescriptor);
     m_tcpSocketList.append(pTcpSocket);
+
+    connect(pTcpSocket, &MyTcpSocket::logout, this, &MyTcpServer::deleteSocket);    // 删掉socket
+}
+
+void MyTcpServer::deleteSocket(MyTcpSocket *mySocket)
+{
+    for (QList<MyTcpSocket*>::iterator it = m_tcpSocketList.begin(); it != m_tcpSocketList.end(); it++)
+    {
+        if (*it == mySocket)
+        {
+            qDebug() << mySocket->getUsername();
+            mySocket -> deleteLater();   // 延迟释放空间，使用delete会报错！！！
+            mySocket = nullptr;
+            m_tcpSocketList.erase(it);
+            break;
+        }
+    }
 }

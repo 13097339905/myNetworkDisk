@@ -30,6 +30,8 @@ private slots:
 
     void recvMsg();
 
+    void on_loginPushButtone_clicked();
+
 private:
     Ui::TcpClient *ui;
     QString m_strIP;        // 读取到的ip，存储到m_strIP

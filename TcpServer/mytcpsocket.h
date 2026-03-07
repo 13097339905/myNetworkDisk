@@ -8,8 +8,17 @@ class MyTcpSocket : public QTcpSocket
 public:
     MyTcpSocket();
 
+    QString getUsername();
+
+signals:
+    void logout(MyTcpSocket* mySocket);
+
+
 public slots:
     void recvMsg();
+
+private:
+    QString m_username;   // 当前socket登录的用户
 };
 
 #endif // MYTCPSOCKET_H

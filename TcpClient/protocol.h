@@ -5,12 +5,16 @@ typedef unsigned int uint;
 
 #define REGISTER_SUCCESSED    "register successed"
 #define REGISTER_FAILED       "register failed : username existed"
+#define LOGIN_SUCCESSED       "login successed"
+#define LOGIN_FAILED          "login failed : username or password is not correct or already login"
 
 enum class ENUM_MSG_TYPE
 {
     ENUM_MSG_TYPE_MIN = 0,             // 最小值，用于边界检查
     ENUM_MSG_TYPE_REGISTER_REQUEST,    // 注册请求
     ENUM_MSG_TYPE_REGISTER_RESPOND,    // 注册回复
+    ENUM_MSG_TYPE_LOGIN_REQUEST,       // 登录请求
+    ENUM_MSG_TYPE_LOGIN_RESPOND,       // 登录回复
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
 
