@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>735</width>
+    <width>877</width>
     <height>516</height>
    </rect>
   </property>
@@ -43,14 +43,14 @@
     <rect>
      <x>170</x>
      <y>30</y>
-     <width>561</width>
+     <width>721</width>
      <height>451</height>
     </rect>
    </property>
    <property name="currentIndex">
     <number>0</number>
    </property>
-   <widget class="QWidget" name="page">
+   <widget class="QWidget" name="friendPage">
     <widget class="QListWidget" name="friendListWidget">
      <property name="geometry">
       <rect>
@@ -117,7 +117,7 @@
      <property name="geometry">
       <rect>
        <x>450</x>
-       <y>210</y>
+       <y>220</y>
        <width>101</width>
        <height>41</height>
       </rect>
@@ -159,8 +159,31 @@
       <string>私聊</string>
      </property>
     </widget>
+    <widget class="QListWidget" name="onlineUserListWidget">
+     <property name="geometry">
+      <rect>
+       <x>570</x>
+       <y>0</y>
+       <width>121</width>
+       <height>371</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="addFriendPushButton">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>390</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>加好友</string>
+     </property>
+    </widget>
    </widget>
-   <widget class="QWidget" name="page_2"/>
+   <widget class="QWidget" name="filePage"/>
   </widget>
  </widget>
  <resources/>

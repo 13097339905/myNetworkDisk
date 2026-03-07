@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QHostAddress>
 #include "protocol.h"
+#include <mainmenu.h>
 
 TcpClient::TcpClient(QWidget *parent)
     : QWidget(parent)
@@ -136,11 +137,13 @@ void TcpClient::recvMsg()
 
         case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND):     // 登录回复
         {
-            if (strcmp(pdu->caData, LOGIN_SUCCESSED) == 0)    // 收到服务器传来的注册成功的消息
+            if (strcmp(pdu->caData, LOGIN_SUCCESSED) == 0)    // 收到服务器传来的登录成功的消息
             {
                 QMessageBox::information(this, "login info", LOGIN_SUCCESSED);
+                mainMenu::getInstance().show();       // 登陆成功，显示主菜单
+                this->hide();                         // 隐藏登录窗口
             }
-            else if (strcmp(pdu->caData, LOGIN_FAILED) == 0)       // 收到服务器传来的注册失败的消息
+            else if (strcmp(pdu->caData, LOGIN_FAILED) == 0)       // 收到服务器传来的登录失败的消息
             {
                 QMessageBox::information(this, "login info", LOGIN_FAILED);
             }
