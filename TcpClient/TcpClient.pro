@@ -17,14 +17,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
+    mainmenu.cpp \
     protocol.cpp \
     tcpclient.cpp
 
 HEADERS += \
+    mainmenu.h \
     protocol.h \
     tcpclient.h
 
 FORMS += \
+    mainmenu.ui \
     tcpclient.ui
 
 # Default rules for deployment.
