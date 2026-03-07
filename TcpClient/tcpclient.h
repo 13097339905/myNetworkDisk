@@ -12,12 +12,23 @@ class TcpClient : public QWidget
 {
     Q_OBJECT
 
-public:
+private:
     TcpClient(QWidget *parent = nullptr);
     ~TcpClient();
+    TcpClient(const TcpClient& tc) = delete;
+    TcpClient& operator=(const TcpClient& tc) = delete;
 
     // 读取配置文件中的信息
     void loadConfig();
+
+public:
+    // 由于需要在主菜单页面中也需要socket与服务器进行通信，但是socket之前是TcpClient的私有成员
+    // 所以需要改变一下，看怎么能让mainMenu也能拿到socket进行通信
+    // 可以把TcpClient也设置成单例模式，只要包含头文件就能拿到进行使用
+    static TcpClient& getInstance();
+
+    // 提供public接口给其他类获取socket
+    QTcpSocket& getSocket();
 
 private slots:
 //    // 点击发送按钮后进行数据发送

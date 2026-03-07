@@ -6,7 +6,8 @@
 #include <QMessageBox>
 #include <QHostAddress>
 #include "protocol.h"
-#include <mainmenu.h>
+#include "mainmenu.h"
+#include "ui_mainmenu.h"
 
 TcpClient::TcpClient(QWidget *parent)
     : QWidget(parent)
@@ -28,6 +29,17 @@ TcpClient::TcpClient(QWidget *parent)
 TcpClient::~TcpClient()
 {
     delete ui;
+}
+
+TcpClient &TcpClient::getInstance()
+{
+    static TcpClient instance;
+    return instance;
+}
+
+QTcpSocket& TcpClient::getSocket()
+{
+    return m_tcpSocket;
 }
 
 // 读取配置文件中的信息（ip，端口号）
@@ -108,14 +120,14 @@ void TcpClient::on_cancellationPushButton_clicked()
 
 void TcpClient::recvMsg()
 {
-    qDebug() << m_tcpSocket.bytesAvailable();
-    uint uiPDULen = 0;
-    m_tcpSocket.read((char*)&uiPDULen, sizeof(uint));    // 先读取总长度4个字节出来，到uiPDULen
-    uint uiMsglen = uiPDULen - sizeof(PDU);        // 得到消息长度
-    PDU* pdu = makePDU(uiMsglen);                  // 根据消息长度构造出pdu
+//    qDebug() << m_tcpSocket.bytesAvailable();
+    uint uiPDULen = 0;      // 将收到的PDU的总长度读到uiPDULen
+    m_tcpSocket.read((char*)&uiPDULen, sizeof(uint));    // 先读取收到的PDU的总长度4个字节出来，到uiPDULen
+    uint uiMsglen = uiPDULen - sizeof(PDU);        // 得到消息数据部分大小
+    PDU* pdu = makePDU(uiMsglen);                  // 根据消息数据部分大小构造出pdu
     // (char*)pdu + sizeof(uint):前四个字节之前已经读完了，所以要读到pud偏移之前读的位置上
     // uiPDULen - sizeof(uint):之前读的不用读了，所以要减去
-    m_tcpSocket.read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));
+    m_tcpSocket.read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));  // 将剩余部分全部读到pdu中
     // qDebug() << pdu->uiMsgType << username << password;
 
     switch (pdu->uiMsgType)
@@ -148,6 +160,16 @@ void TcpClient::recvMsg()
                 QMessageBox::information(this, "login info", LOGIN_FAILED);
             }
         }
+
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND):    // 查询在线用户回复
+        {
+            char onlineUser[pdu->uiMsgLen];
+            strcpy(onlineUser, (char*)pdu->caMsg);     // 将收到的在线用户存到onlineUser中;
+
+            QStringList res = QString(onlineUser).split(',');
+            mainMenu::getInstance().setOnlineUser(res);
+        }
+
     }
     free(pdu);
     pdu = nullptr;

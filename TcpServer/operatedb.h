@@ -33,6 +33,9 @@ public:
     // 更新用户信息
     void updateOnline(const QString username);
 
+    // 查询在线用户
+    QString selectOnlineUser();
+
 signals:
 
 private:

@@ -80,6 +80,19 @@ void MyTcpSocket::recvMsg()
         break;
     }
 
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_REQUEST):   // 查询在线用户请求
+    {
+        QString onlineUser = OperateDB::getInstance().selectOnlineUser();
+        PDU* selectOnlineUserPDU = makePDU(onlineUser.size() + 1);   // 初始化查询结果返回去的PDU
+        selectOnlineUserPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND);  // 设置消息类型
+
+        strcpy((char*)selectOnlineUserPDU->caMsg, onlineUser.toStdString().c_str());    // 将查询好的结果存到消息里面
+        this->write((char*)selectOnlineUserPDU, selectOnlineUserPDU->uiPDULen);         // 将查询结果封装到PDU后发送回客户端
+        free(selectOnlineUserPDU);
+        selectOnlineUserPDU = nullptr;
+        break;
+    }
+
     default:
         break;
     }

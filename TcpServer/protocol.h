@@ -15,8 +15,11 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_REGISTER_RESPOND,    // 注册回复
     ENUM_MSG_TYPE_LOGIN_REQUEST,       // 登录请求
     ENUM_MSG_TYPE_LOGIN_RESPOND,       // 登录回复
+    ENUM_MSG_TYPE_SELECT_ONLINE_USER_REQUEST,  // 查询在线用户请求
+    ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND,  // 查询在线用户回复
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
+
 
 struct PDU
 {

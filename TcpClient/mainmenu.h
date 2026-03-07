@@ -21,6 +21,9 @@ private:
 public:
     static mainMenu& getInstance();
 
+    // 设置显示在线用户
+    void setOnlineUser(QStringList& qs);
+
 private slots:
     // 显示所有在线用户按钮的槽函数，实现点击转变状态（显示或者不显示）
     void on_showOnlinePushButton_clicked();

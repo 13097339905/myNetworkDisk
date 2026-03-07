@@ -117,3 +117,18 @@ void OperateDB::updateOnline(const QString username)
         qDebug() << "更新失败:" << query.lastError().text();
     }
 }
+
+QString OperateDB::selectOnlineUser()
+{
+    QSqlQuery query;
+    query.prepare("select name from userinfo where online = :online");
+    query.bindValue(":online",  1);
+    query.exec();
+    QString onlineUser;
+    while (query.next())
+    {
+        onlineUser += query.value(0).toString();
+        onlineUser += ',';     // 根据,逗号进行分隔
+    }
+    return onlineUser;
+}
