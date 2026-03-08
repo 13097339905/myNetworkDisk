@@ -2,6 +2,7 @@
 #include "ui_mainmenu.h"
 #include "protocol.h"
 #include "tcpclient.h"
+#include <QInputDialog>
 
 mainMenu::mainMenu(QWidget *parent) :
     QWidget(parent),
@@ -14,6 +15,8 @@ mainMenu::mainMenu(QWidget *parent) :
     // 3. 信号被 QStackedWidget 的 setCurrentIndex 槽函数接收
     // 4. QStackedWidget 根据收到的行号切换到对应索引的页面
     connect(ui->listWidget, &QListWidget::currentRowChanged, ui->stackedWidget, &QStackedWidget::setCurrentIndex);
+
+    on_showOnlinePushButton_clicked();
 }
 
 mainMenu::~mainMenu()
@@ -29,7 +32,14 @@ mainMenu &mainMenu::getInstance()
 
 void mainMenu::setOnlineUser(QStringList& qs)
 {
+    ui->onlineUserListWidget->clear();
     ui->onlineUserListWidget->addItems(qs);
+}
+
+void mainMenu::setOnlineUser(QString& qs)
+{
+    ui->onlineUserListWidget->clear();
+    ui->onlineUserListWidget->addItem(qs);
 }
 
 
@@ -37,23 +47,46 @@ void mainMenu::setOnlineUser(QStringList& qs)
 // 显示所有在线用户按钮的槽函数
 void mainMenu::on_showOnlinePushButton_clicked()
 {
-    if (ui->onlineUserListWidget->isHidden())     // 如果是隐藏的，点击就显示
-    {
-        ui->onlineUserListWidget->show();
-        ui->addFriendPushButton->show();
-        // 发送给服务器查看所有在线用户的请求，服务器收到请求后开始查询在线用户，再将查到的结果发回给客户端，再显示
-        PDU* pdu = makePDU(0);      // 只需要发请求，没有附加的文件，所以开0的就行
-        pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_REQUEST);   // 设置消息类型
-        TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将查询在线用户的请求发出去
-        free(pdu);
-        pdu = nullptr;
-    }
-    else                                          // 如果是显示的，点击就隐藏
-    {
-        ui->onlineUserListWidget->hide();
-        ui->addFriendPushButton->hide();
-        ui->onlineUserListWidget->clear();
-    }
+    ui->onlineUserListWidget->show();
+    ui->addFriendPushButton->show();
+    // 发送给服务器查看所有在线用户的请求，服务器收到请求后开始查询在线用户，再将查到的结果发回给客户端，再显示
+    PDU* pdu = makePDU(0);      // 只需要发请求，没有附加的文件，所以开0的就行
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_REQUEST);   // 设置消息类型
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将查询在线用户的请求发出去
+    free(pdu);
+    pdu = nullptr;
+//    if (ui->onlineUserListWidget->isHidden())     // 如果是隐藏的，点击就显示
+//    {
+//        ui->onlineUserListWidget->show();
+//        ui->addFriendPushButton->show();
+//        // 发送给服务器查看所有在线用户的请求，服务器收到请求后开始查询在线用户，再将查到的结果发回给客户端，再显示
+//        PDU* pdu = makePDU(0);      // 只需要发请求，没有附加的文件，所以开0的就行
+//        pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_REQUEST);   // 设置消息类型
+//        TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将查询在线用户的请求发出去
+//        free(pdu);
+//        pdu = nullptr;
+//    }
+//    else                                          // 如果是显示的，点击就隐藏
+//    {
+//        ui->onlineUserListWidget->hide();
+//        ui->addFriendPushButton->hide();
+//    }
 }
 
 
+// 查找用户槽函数
+void mainMenu::on_findPushButton_clicked()
+{
+    // 利用对话框获取用户输入的用户名，将用户名发送给服务器让服务器查询，然后再返回查询结果
+    bool isSearch;
+    QString username = QInputDialog::getText(this, "search user", "input username", QLineEdit::Normal, "", &isSearch);   // 初始化对话框，获取用户输入到对话框的用户名
+    if (!isSearch)
+        return;
+
+    m_username = username;
+    PDU* pdu = makePDU(0);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SEARCH_USER_REQUEST);   // 设置消息类型
+    strcpy(pdu->caData, username.toStdString().c_str());    // 将想搜索的用户名拷贝到pdu中
+
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将消息发送给服务器
+}

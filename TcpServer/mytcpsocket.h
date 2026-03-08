@@ -1,6 +1,7 @@
 #ifndef MYTCPSOCKET_H
 #define MYTCPSOCKET_H
 #include <QTcpSocket>
+#include "protocol.h"
 
 class MyTcpSocket : public QTcpSocket
 {
@@ -19,6 +20,18 @@ public slots:
 
 private:
     QString m_username;   // 当前socket登录的用户
+
+    // 处理客户端发过来的用户注册请求
+    void handleRegisterRequest(PDU* pdu);
+
+    // 处理客户端发过来的用户登录请求
+    void handleLoginRequest(PDU* pdu);
+
+    // 处理客户端发过来的查询所有在线用户请求
+    void handleSelectOnlineRequest();
+
+    // 处理客户端发过来的查询用户请求
+    void handleSearchUserRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

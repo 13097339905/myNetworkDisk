@@ -123,7 +123,10 @@ QString OperateDB::selectOnlineUser()
     QSqlQuery query;
     query.prepare("select name from userinfo where online = :online");
     query.bindValue(":online",  1);
-    query.exec();
+    if (!query.exec())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+    }
     QString onlineUser;
     while (query.next())
     {
@@ -131,4 +134,22 @@ QString OperateDB::selectOnlineUser()
         onlineUser += ',';     // 根据,逗号进行分隔
     }
     return onlineUser;
+}
+
+// 查找用户
+int OperateDB::searchUser(QString username)
+{
+    QSqlQuery query;
+    query.prepare("select online from userinfo where name = :username");
+    query.bindValue(":username", username);
+    if (!query.exec())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+    }
+    if (!query.next())    // 没有查找到该用户
+    {
+        return USER_NOT_EXIST;
+    }
+    int online = query.value(0).toInt();
+    return online == 1 ? USER_IS_ONLINE : USER_NOT_ONLINE;
 }

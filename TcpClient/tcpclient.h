@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QTcpSocket>     // 用来连接服务器
+#include "protocol.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class TcpClient; }
@@ -20,6 +21,19 @@ private:
 
     // 读取配置文件中的信息
     void loadConfig();
+
+
+    // 处理服务器发来的注册回复
+    void handleRegisterRespond(PDU* pdu);
+
+    // 处理服务器发来的登录回复
+    void handleLoginRespond(PDU* pdu);
+
+    // 处理服务器发来的查询所有在线用户的回复
+    void handleSelectOnlineUserRespond(PDU* pdu);
+
+    // 处理服务器发来的搜索用户的回复
+    void handleSearchUserRespond(PDU* pdu);
 
 public:
     // 由于需要在主菜单页面中也需要socket与服务器进行通信，但是socket之前是TcpClient的私有成员

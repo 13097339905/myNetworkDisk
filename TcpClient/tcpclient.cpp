@@ -5,7 +5,6 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QHostAddress>
-#include "protocol.h"
 #include "mainmenu.h"
 #include "ui_mainmenu.h"
 
@@ -118,6 +117,66 @@ void TcpClient::on_cancellationPushButton_clicked()
     //    }
 }
 
+
+// 处理服务器发来的注册回复
+void TcpClient::handleRegisterRespond(PDU* pdu)
+{
+//            qDebug() << strcmp(pdu->caData, REGISTER_SUCCESSED);
+//            qDebug() << strcmp(pdu->caData, REGISTER_FAILED);
+
+    if (strcmp(pdu->caData, REGISTER_SUCCESSED) == 0)    // 收到服务器传来的注册成功的消息
+    {
+        QMessageBox::information(this, "register info", REGISTER_SUCCESSED);
+    }
+    else if (strcmp(pdu->caData, REGISTER_FAILED) == 0)       // 收到服务器传来的注册失败的消息
+    {
+        QMessageBox::information(this, "register info", REGISTER_FAILED);
+    }
+}
+
+// 处理服务器发来的登录回复
+void TcpClient::handleLoginRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, LOGIN_SUCCESSED) == 0)    // 收到服务器传来的登录成功的消息
+    {
+        QMessageBox::information(this, "login info", LOGIN_SUCCESSED);
+        mainMenu::getInstance().show();       // 登陆成功，显示主菜单
+        this->hide();                         // 隐藏登录窗口
+    }
+    else if (strcmp(pdu->caData, LOGIN_FAILED) == 0)       // 收到服务器传来的登录失败的消息
+    {
+        QMessageBox::information(this, "login info", LOGIN_FAILED);
+    }
+}
+
+// 处理服务器发来的查询所有在线用户的回复
+void TcpClient::handleSelectOnlineUserRespond(PDU* pdu)
+{
+    char onlineUser[pdu->uiMsgLen];
+    strcpy(onlineUser, (char*)pdu->caMsg);     // 将收到的在线用户存到onlineUser中;
+
+    QStringList res = QString(onlineUser).split(',');
+    mainMenu::getInstance().setOnlineUser(res);
+}
+
+// 处理服务器发来的搜索用户的回复
+void TcpClient::handleSearchUserRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, SEARCH_USER_NOT_EIXST) == 0)
+    {
+        QMessageBox::information(this, "search user", SEARCH_USER_NOT_EIXST);
+    }
+    else if (strcmp(pdu->caData, SEARCH_USER_NOT_ONLINE) == 0)
+    {
+        QMessageBox::information(this, "search user", SEARCH_USER_NOT_ONLINE);
+    }
+    else if (strcmp(pdu->caData, SEARCH_USER_ONLINE) == 0)
+    {
+        QString username = mainMenu::getInstance().m_username;
+        mainMenu::getInstance().setOnlineUser(username);
+    }
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -132,43 +191,21 @@ void TcpClient::recvMsg()
 
     switch (pdu->uiMsgType)
     {
-        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND):   // 注册回复
-        {
-//            qDebug() << strcmp(pdu->caData, REGISTER_SUCCESSED);
-//            qDebug() << strcmp(pdu->caData, REGISTER_FAILED);
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND):   // 收到服务器的注册回复
+        handleRegisterRespond(pdu);
+        break;
 
-            if (strcmp(pdu->caData, REGISTER_SUCCESSED) == 0)    // 收到服务器传来的注册成功的消息
-            {
-                QMessageBox::information(this, "register info", REGISTER_SUCCESSED);
-            }
-            else if (strcmp(pdu->caData, REGISTER_FAILED) == 0)       // 收到服务器传来的注册失败的消息
-            {
-                QMessageBox::information(this, "register info", REGISTER_FAILED);
-            }
-        }
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND):     // 收到服务器的登录回复
+        handleLoginRespond(pdu);
+        break;
 
-        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND):     // 登录回复
-        {
-            if (strcmp(pdu->caData, LOGIN_SUCCESSED) == 0)    // 收到服务器传来的登录成功的消息
-            {
-                QMessageBox::information(this, "login info", LOGIN_SUCCESSED);
-                mainMenu::getInstance().show();       // 登陆成功，显示主菜单
-                this->hide();                         // 隐藏登录窗口
-            }
-            else if (strcmp(pdu->caData, LOGIN_FAILED) == 0)       // 收到服务器传来的登录失败的消息
-            {
-                QMessageBox::information(this, "login info", LOGIN_FAILED);
-            }
-        }
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND):    // 收到服务器的查询在线用户回复
+        handleSelectOnlineUserRespond(pdu);
+        break;
 
-        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND):    // 查询在线用户回复
-        {
-            char onlineUser[pdu->uiMsgLen];
-            strcpy(onlineUser, (char*)pdu->caMsg);     // 将收到的在线用户存到onlineUser中;
-
-            QStringList res = QString(onlineUser).split(',');
-            mainMenu::getInstance().setOnlineUser(res);
-        }
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SEARCH_USER_RESPOND):       // 收到服务器的查询用户回复
+        handleSearchUserRespond(pdu);
+        break;
 
     }
     free(pdu);

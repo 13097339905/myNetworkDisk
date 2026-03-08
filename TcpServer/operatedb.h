@@ -5,6 +5,10 @@
 #include <QSqlDatabase>    // 用来连接数据库
 #include <QSqlQuery>       // 用来查询数据库
 
+#define USER_NOT_EXIST     -1   // 查找到不存在的用户
+#define USER_IS_ONLINE      1   // 用户在线
+#define USER_NOT_ONLINE     0   // 用户不在线
+
 class OperateDB : public QObject
 {
     Q_OBJECT
@@ -35,6 +39,9 @@ public:
 
     // 查询在线用户
     QString selectOnlineUser();
+
+    // 查找用户
+    int searchUser(QString username);
 
 signals:
 
