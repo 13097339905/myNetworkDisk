@@ -2,6 +2,7 @@
 #define MAINMENU_H
 
 #include <QWidget>
+#include <QString>
 
 namespace Ui {
 class mainMenu;
@@ -23,8 +24,10 @@ public:
 
     // 设置显示在线用户
     void setOnlineUser(QStringList& qs);
-
     void setOnlineUser(QString& qs);
+
+    void setMyUsername(const QString name);
+    QString getMyUsername() const;
 
     QString m_username;
 
@@ -34,8 +37,12 @@ private slots:
 
     void on_findPushButton_clicked();
 
+    void on_addFriendPushButton_clicked();
+
 private:
     Ui::mainMenu *ui;
+
+    QString m_myUsername;
 };
 
 #endif // MAINMENU_H

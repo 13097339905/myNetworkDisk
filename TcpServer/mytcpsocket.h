@@ -32,6 +32,15 @@ private:
 
     // 处理客户端发过来的查询用户请求
     void handleSearchUserRequest(PDU* pdu);
+
+    // 处理客户端发过来的添加好友请求
+    void handleAddFriendRequest(PDU* pdu);
+
+    // 处理客户端发过来的同意添加好友
+    void handleAgreeRequest(PDU* pdu);
+
+    // 处理客户端发过来的拒绝添加好友
+    void handleRefuseRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

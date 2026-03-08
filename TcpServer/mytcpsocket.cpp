@@ -1,6 +1,7 @@
 #include "mytcpsocket.h"
 #include <QDebug>
 #include "operatedb.h"
+#include "mytcpserver.h"
 
 MyTcpSocket::MyTcpSocket()
 {
@@ -54,7 +55,7 @@ void MyTcpSocket::handleLoginRequest(PDU* pdu)
     {
         OperateDB::getInstance().updateOnline(username);
         strcpy(loginPDU->caData, LOGIN_SUCCESSED);
-        m_username = username;       // 保存当前登录的用户，用于结束连接时将其在线状态改变
+        m_username = username;       // 保存当前登录的用户名到socket
     }
     else
     {
@@ -106,6 +107,66 @@ void MyTcpSocket::handleSearchUserRequest(PDU* pdu)
     searchUserPDU = nullptr;
 }
 
+// 处理客户端发过来的添加好友请求
+void MyTcpSocket::handleAddFriendRequest(PDU* pdu)
+{
+    char myUsername[32];
+    char username[32];
+    strncpy(myUsername, pdu->caData, 32);      // 获取发送过来的当前用户名
+    strncpy(username, pdu->caData + 32, 32);   // 和想要加的用户名
+
+    // 到数据库里面去查询
+    int res = OperateDB::getInstance().addFriendSearch(myUsername, username);
+    PDU* addFriendPDU = makePDU(0);
+    addFriendPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_RESPOND);
+
+    // 1.已经是好友的情况，客户端直接弹出已经是好友的弹出窗口
+    if (res == EXIST_FRIEND)
+    {
+        strcpy(addFriendPDU->caData, ALREADY_IS_FRIEND);
+    }
+    // 2.想加的用户不在线，客户端直接弹出相加的好友不在线的窗口
+    if (res == USER_NOT_ONLINE)
+    {
+        strcpy(addFriendPDU->caData, SEARCH_USER_NOT_ONLINE);
+    }
+    // 3.想加的用户在线，被加的客户端弹出窗口，是否同意加好友
+    if (res == USER_IS_ONLINE)
+    {
+        MyTcpServer::getInstance().forwardPDU(pdu, username);   // 转发给想添加的用户
+    }
+    this->write((char*)addFriendPDU, addFriendPDU->uiPDULen);
+    free(addFriendPDU);
+    addFriendPDU = nullptr;
+}
+
+// 处理客户端发过来的同意添加好友
+void MyTcpSocket::handleAgreeRequest(PDU* pdu)
+{
+    // 先将数据插进去，再转发消息
+    char myUsername[32];
+    char username[32];
+
+    strncpy(myUsername, pdu->caData, 32);
+    strncpy(username, pdu->caData + 32, 32);
+//    qDebug() << 2 << myUsername << username;
+    if(!OperateDB::getInstance().insertFriendInfo(myUsername, username))   // 插入friendInfo里面去
+        return;    // 插入失败
+
+    // 转发消息
+    MyTcpServer::getInstance().forwardPDU(pdu, myUsername);    // 转发给申请加好友的用户申请结果
+}
+
+// 处理客户端发过来的拒绝添加好友
+void MyTcpSocket::handleRefuseRequest(PDU* pdu)
+{
+    // 直接转发消息
+    char myUsername[32];
+    strncpy(myUsername, pdu->caData, 32);
+    MyTcpServer::getInstance().forwardPDU(pdu, myUsername);    // 转发给申请加好友的用户申请结果
+}
+
+
 void MyTcpSocket::recvMsg()
 {
 //    qDebug() << this->bytesAvailable();
@@ -137,6 +198,17 @@ void MyTcpSocket::recvMsg()
         handleSearchUserRequest(pdu);
         break;
 
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REQUEST):     // 添加好友请求
+        handleAddFriendRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_AGREE):      // 同意添加好友
+        handleAgreeRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REFUSE):     // 拒绝好友请求
+        handleRefuseRequest(pdu);
+        break;
 
 
     default:

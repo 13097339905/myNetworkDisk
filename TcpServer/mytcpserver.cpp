@@ -23,6 +23,20 @@ void MyTcpServer::incomingConnection(qintptr socketDescriptor)
     connect(pTcpSocket, &MyTcpSocket::logout, this, &MyTcpServer::deleteSocket);    // 删掉socket
 }
 
+// 转发消息给username为name的socket
+void MyTcpServer::forwardPDU(PDU *pdu, QString name)
+{
+    qDebug() << name;
+    for (QList<MyTcpSocket*>::iterator it = m_tcpSocketList.begin(); it != m_tcpSocketList.end(); it++)
+    {
+        if ((*it)->getUsername() == name)     // 根据MyTcpSocket里面存的登录时候的名字，来决定转发加好友的消息给谁
+        {
+            (*it)->write((char*)pdu, pdu->uiPDULen);
+            return;
+        }
+    }
+}
+
 void MyTcpServer::deleteSocket(MyTcpSocket *mySocket)
 {
     for (QList<MyTcpSocket*>::iterator it = m_tcpSocketList.begin(); it != m_tcpSocketList.end(); it++)

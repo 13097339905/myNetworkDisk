@@ -35,6 +35,18 @@ private:
     // 处理服务器发来的搜索用户的回复
     void handleSearchUserRespond(PDU* pdu);
 
+    // 处理服务器发来的加好友的回复
+    void handleAddFriendRespond(PDU* pdu);
+
+    // 处理服务器转发的的加好友的请求
+    void handleAddFriendRequest(PDU* pdu);
+
+    // 处理同意加好友的情况
+    void handleAgreeFriend(PDU* pdu);
+
+    // 处理不同意加好友的情况
+    void handleRefuseFriend(PDU* pdu);
+
 public:
     // 由于需要在主菜单页面中也需要socket与服务器进行通信，但是socket之前是TcpClient的私有成员
     // 所以需要改变一下，看怎么能让mainMenu也能拿到socket进行通信

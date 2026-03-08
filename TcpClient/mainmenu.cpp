@@ -3,6 +3,7 @@
 #include "protocol.h"
 #include "tcpclient.h"
 #include <QInputDialog>
+#include <QMessageBox>
 
 mainMenu::mainMenu(QWidget *parent) :
     QWidget(parent),
@@ -17,6 +18,7 @@ mainMenu::mainMenu(QWidget *parent) :
     connect(ui->listWidget, &QListWidget::currentRowChanged, ui->stackedWidget, &QStackedWidget::setCurrentIndex);
 
     on_showOnlinePushButton_clicked();
+
 }
 
 mainMenu::~mainMenu()
@@ -40,6 +42,16 @@ void mainMenu::setOnlineUser(QString& qs)
 {
     ui->onlineUserListWidget->clear();
     ui->onlineUserListWidget->addItem(qs);
+}
+
+void mainMenu::setMyUsername(const QString name)
+{
+    m_myUsername = name;
+}
+
+QString mainMenu::getMyUsername() const
+{
+    return m_myUsername;
 }
 
 
@@ -89,4 +101,31 @@ void mainMenu::on_findPushButton_clicked()
     strcpy(pdu->caData, username.toStdString().c_str());    // 将想搜索的用户名拷贝到pdu中
 
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将消息发送给服务器
+}
+
+// 添加好友
+void mainMenu::on_addFriendPushButton_clicked()
+{
+    QListWidgetItem * item = ui->onlineUserListWidget->currentItem();   // 得到当前列表指向的item
+    if (item == nullptr) {
+        QMessageBox::information(this, "add friend", "please select a online user");
+        return;
+    }
+
+    QString username = item->text();   // 想要添加的用户名
+    if (username == m_myUsername)      // 不能添加自己为好友
+    {
+        QMessageBox::information(this, "add friend", "can't add self");
+        return;
+    }
+
+    // 将自己的用户名和想加的好友的用户名，打包发送给服务器
+    PDU* pdu = makePDU(0);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REQUEST);
+    strncpy(pdu->caData, m_myUsername.toStdString().c_str(), 32);
+    strncpy(pdu->caData + 32, username.toStdString().c_str(), 32);
+
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
 }

@@ -8,6 +8,7 @@
 #define USER_NOT_EXIST     -1   // 查找到不存在的用户
 #define USER_IS_ONLINE      1   // 用户在线
 #define USER_NOT_ONLINE     0   // 用户不在线
+#define EXIST_FRIEND       -1   // 已经是好友了
 
 class OperateDB : public QObject
 {
@@ -41,7 +42,13 @@ public:
     QString selectOnlineUser();
 
     // 查找用户
-    int searchUser(QString username);
+    int searchUser(const QString username);
+
+    // 加好友信息
+    int addFriendSearch(const QString myUsername, const QString username);
+
+    // 添加好友
+    bool insertFriendInfo(const QString myUsername, const QString username);
 
 signals:
 

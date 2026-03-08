@@ -140,6 +140,7 @@ void TcpClient::handleLoginRespond(PDU* pdu)
     if (strcmp(pdu->caData, LOGIN_SUCCESSED) == 0)    // 收到服务器传来的登录成功的消息
     {
         QMessageBox::information(this, "login info", LOGIN_SUCCESSED);
+        mainMenu::getInstance().setMyUsername(ui->usernameLineEdit->text());    // 登录时记下用户名到mainMenu
         mainMenu::getInstance().show();       // 登陆成功，显示主菜单
         this->hide();                         // 隐藏登录窗口
     }
@@ -177,6 +178,63 @@ void TcpClient::handleSearchUserRespond(PDU* pdu)
     }
 }
 
+// 处理服务器发来的加好友的回复
+void TcpClient::handleAddFriendRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, SEARCH_USER_NOT_ONLINE) == 0)  // 要加的好友不在线
+    {
+        QMessageBox::information(this, "add friend", SEARCH_USER_NOT_ONLINE);
+    }
+    else if (strcmp(pdu->caData, ALREADY_IS_FRIEND) == 0)  // 已经是好友了
+    {
+        QMessageBox::information(this, "add friend", ALREADY_IS_FRIEND);
+    }
+}
+
+// 处理服务器转发的的加好友的请求
+void TcpClient::handleAddFriendRequest(PDU* pdu)
+{
+    char username[32];
+    char myUsername[32];
+    strncpy(username, pdu->caData, 32);
+    strncpy(myUsername, pdu->caData + 32, 32);
+    int res = QMessageBox::information(this, "add friend", QString(username) + " want to add you as friend",
+                             QMessageBox::Yes, QMessageBox::No);
+
+    PDU* addFriendPDU = makePDU(0);
+    strncpy(addFriendPDU->caData, username, 32);
+    strncpy(addFriendPDU->caData + 32, myUsername, 32);
+    if (res == QMessageBox::Yes)      // 接收加好友的请求，那么就再发信息给服务器，通过加好友，那么就写入数据库
+    {
+//        qDebug() << 3 << username << myUsername;
+        addFriendPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_AGREE);
+        QMessageBox::information(this, "add friend", "you can chat with " + QString(username) + " now");
+    }
+    else                              // 拒绝加好友的请求，那么服务器就再转发给请求的客户端，说明拒绝加好友
+    {
+        addFriendPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REFUSE);
+    }
+    m_tcpSocket.write((char*)addFriendPDU, addFriendPDU->uiPDULen);     // 发送给服务器是否同意加好友的消息
+    free(addFriendPDU);
+    addFriendPDU = nullptr;
+}
+
+// 处理同意加好友的情况
+void TcpClient::handleAgreeFriend(PDU* pdu)
+{
+    char name[32];
+    strncpy(name, pdu->caData + 32, 32);
+    QMessageBox::information(this, "", QString(name) + " agree you apply, you can chat now");
+}
+
+// 处理不同意加好友的情况
+void TcpClient::handleRefuseFriend(PDU* pdu)
+{
+    char name[32];
+    strncpy(name, pdu->caData + 32, 32);
+    QMessageBox::information(this, "", "sorry," + QString(name) + " refuse you apply");
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -205,6 +263,22 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SEARCH_USER_RESPOND):       // 收到服务器的查询用户回复
         handleSearchUserRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_RESPOND):        // 处理服务器的加好友的回复
+        handleAddFriendRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REQUEST):        // 处理服务器转发的加好友的请求
+        handleAddFriendRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_AGREE):          // 收到同意加好友的消息
+        handleAgreeFriend(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REFUSE):        // 收到拒绝加好友的消息
+        handleRefuseFriend(pdu);
         break;
 
     }

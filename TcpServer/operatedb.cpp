@@ -137,7 +137,7 @@ QString OperateDB::selectOnlineUser()
 }
 
 // 查找用户
-int OperateDB::searchUser(QString username)
+int OperateDB::searchUser(const QString username)
 {
     QSqlQuery query;
     query.prepare("select online from userinfo where name = :username");
@@ -152,4 +152,78 @@ int OperateDB::searchUser(QString username)
     }
     int online = query.value(0).toInt();
     return online == 1 ? USER_IS_ONLINE : USER_NOT_ONLINE;
+}
+
+int OperateDB::addFriendSearch(const QString myUsername, const QString username)
+{
+    QSqlQuery query;
+    query.prepare("select id from userinfo where name = :myUsername");    // 先把自己的id查出来存到myId
+    query.bindValue(":myUsername", myUsername);
+    if (!query.exec())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+    }
+    query.next();    // 获取值之前记得调用next
+    int myId = query.value(0).toInt();
+
+    query.prepare("select id, online from userinfo where name = :username");   // 查询要加的好友的id和在线状态
+    query.bindValue(":username", username);
+    if (!query.exec())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+    }
+    query.next();    // 获取值之前记得调用next
+    int id = query.value(0).toInt();
+    int online = query.value(1).toInt();
+
+    query.prepare("select * from friendInfo where (id = :myId and friendId = :id) or (id = :id and friendId = :myId)");
+    query.bindValue(":myId", myId);
+    query.bindValue(":id", id);
+    if (!query.exec())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+    }
+    if (query.next())   // 已经是好友了直接返回
+    {
+        return EXIST_FRIEND;
+    }
+
+    return online == 1 ? USER_IS_ONLINE : USER_NOT_ONLINE;    // 要加的用户是否在线
+}
+
+// 插入好友信息
+bool OperateDB::insertFriendInfo(const QString myUsername, const QString username)
+{
+    qDebug() << myUsername << username;
+    QSqlQuery query;
+    query.prepare("select id from userinfo where name = :myUsername");    // 先把自己的id查出来存到myId
+    query.bindValue(":myUsername", myUsername);
+    if (!query.exec())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+        return false;
+    }
+    query.next();    // 获取值之前记得调用next
+    int myId = query.value(0).toInt();
+
+    query.prepare("select id from userinfo where name = :username");   // 查询要加的好友的id和在线状态
+    query.bindValue(":username", username);
+    if (!query.exec())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+        return false;
+    }
+    query.next();    // 获取值之前记得调用next
+    int id = query.value(0).toInt();
+
+    query.prepare("insert into friendInfo values (:myId, :id)");
+    qDebug() << myId << id;
+    query.bindValue(":myId", myId);
+    query.bindValue(":id", id);
+    if (!query.exec())
+    {
+        qDebug() << "插入失败:" << query.lastError().text();
+        return false;
+    }
+    return true;
 }

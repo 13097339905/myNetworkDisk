@@ -21,6 +21,9 @@ public:
     // 是QTcpServer类中的一个虚函数，当有新的客户端连接请求到达时，会被自动调用
     void incomingConnection(qintptr socketDescriptor);
 
+    // 转发消息给name
+    void forwardPDU(PDU* pdu, QString name);
+
 public slots:
     // 删掉断开连接的socket
     void deleteSocket(MyTcpSocket* mySocket);

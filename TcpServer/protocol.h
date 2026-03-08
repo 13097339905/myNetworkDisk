@@ -10,6 +10,7 @@ typedef unsigned int uint;
 #define SEARCH_USER_NOT_EIXST   "search user is not exist"
 #define SEARCH_USER_ONLINE      "search user is online"
 #define SEARCH_USER_NOT_ONLINE  "search user is not online"
+#define ALREADY_IS_FRIEND       "already is friend, can't repeat add"
 
 enum class ENUM_MSG_TYPE
 {
@@ -20,8 +21,12 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_LOGIN_RESPOND,       // 登录回复
     ENUM_MSG_TYPE_SELECT_ONLINE_USER_REQUEST,  // 查询在线用户请求
     ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND,  // 查询在线用户回复
-    ENUM_MSG_TYPE_SEARCH_USER_REQUEST,       // 查询用户请求
-    ENUM_MSG_TYPE_SEARCH_USER_RESPOND,       // 查询用户回复
+    ENUM_MSG_TYPE_SEARCH_USER_REQUEST,         // 查询用户请求
+    ENUM_MSG_TYPE_SEARCH_USER_RESPOND,         // 查询用户回复
+    ENUM_MSG_TYPE_ADD_FRIEND_REQUEST,          // 添加好友请求
+    ENUM_MSG_TYPE_ADD_FRIEND_RESPOND,       // 添加好友回复
+    ENUM_MSG_TYPE_ADD_FRIEND_AGREE,         // 同意添加好友消息
+    ENUM_MSG_TYPE_ADD_FRIEND_REFUSE,        // 拒绝添加好友消息
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
 
