@@ -17,8 +17,9 @@ mainMenu::mainMenu(QWidget *parent) :
     // 4. QStackedWidget 根据收到的行号切换到对应索引的页面
     connect(ui->listWidget, &QListWidget::currentRowChanged, ui->stackedWidget, &QStackedWidget::setCurrentIndex);
 
-    on_showOnlinePushButton_clicked();
+    on_showOnlinePushButton_clicked();    // 一跑起来就显示所有在线用户
 
+    on_flushPushButton_clicked();         // 一跑起来就显示所有好友
 }
 
 mainMenu::~mainMenu()
@@ -32,19 +33,19 @@ mainMenu &mainMenu::getInstance()
     return m;
 }
 
-void mainMenu::setOnlineUser(QStringList& qs)
+void mainMenu::setOnlineUser(QStringList sl)
 {
     ui->onlineUserListWidget->clear();
-    ui->onlineUserListWidget->addItems(qs);
+    ui->onlineUserListWidget->addItems(sl);
 }
 
-void mainMenu::setOnlineUser(QString& qs)
+void mainMenu::setOnlineUser(QString s)
 {
     ui->onlineUserListWidget->clear();
-    ui->onlineUserListWidget->addItem(qs);
+    ui->onlineUserListWidget->addItem(s);
 }
 
-void mainMenu::setMyUsername(const QString name)
+void mainMenu::setMyUsername(QString name)
 {
     m_myUsername = name;
 }
@@ -52,6 +53,12 @@ void mainMenu::setMyUsername(const QString name)
 QString mainMenu::getMyUsername() const
 {
     return m_myUsername;
+}
+
+void mainMenu::setFriend(QStringList sl)
+{
+    ui->friendListWidget->clear();
+    ui->friendListWidget->addItems(sl);
 }
 
 
@@ -125,6 +132,16 @@ void mainMenu::on_addFriendPushButton_clicked()
     strncpy(pdu->caData, m_myUsername.toStdString().c_str(), 32);
     strncpy(pdu->caData + 32, username.toStdString().c_str(), 32);
 
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
+}
+
+void mainMenu::on_flushPushButton_clicked()
+{
+    // 发送给服务器，查询当前用户的所有好友
+    PDU* pdu = makePDU(0);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_REQUEST);
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);
     pdu = nullptr;

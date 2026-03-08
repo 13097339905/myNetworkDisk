@@ -23,13 +23,15 @@ public:
     static mainMenu& getInstance();
 
     // 设置显示在线用户
-    void setOnlineUser(QStringList& qs);
-    void setOnlineUser(QString& qs);
+    void setOnlineUser(QStringList sl);
+    void setOnlineUser(QString s);
 
-    void setMyUsername(const QString name);
+    void setMyUsername(QString name);
     QString getMyUsername() const;
 
     QString m_username;
+
+    void setFriend(QStringList sl);
 
 private slots:
     // 显示所有在线用户按钮的槽函数，实现点击转变状态（显示或者不显示）
@@ -38,6 +40,8 @@ private slots:
     void on_findPushButton_clicked();
 
     void on_addFriendPushButton_clicked();
+
+    void on_flushPushButton_clicked();
 
 private:
     Ui::mainMenu *ui;

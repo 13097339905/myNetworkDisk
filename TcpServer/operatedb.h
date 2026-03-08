@@ -50,6 +50,9 @@ public:
     // 添加好友
     bool insertFriendInfo(const QString myUsername, const QString username);
 
+    // 查询当前用户所有好友
+    QString selectFriend(const QString username);
+
 signals:
 
 private:

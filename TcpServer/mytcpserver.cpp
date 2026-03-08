@@ -26,7 +26,6 @@ void MyTcpServer::incomingConnection(qintptr socketDescriptor)
 // 转发消息给username为name的socket
 void MyTcpServer::forwardPDU(PDU *pdu, QString name)
 {
-    qDebug() << name;
     for (QList<MyTcpSocket*>::iterator it = m_tcpSocketList.begin(); it != m_tcpSocketList.end(); it++)
     {
         if ((*it)->getUsername() == name)     // 根据MyTcpSocket里面存的登录时候的名字，来决定转发加好友的消息给谁
@@ -43,7 +42,6 @@ void MyTcpServer::deleteSocket(MyTcpSocket *mySocket)
     {
         if (*it == mySocket)
         {
-            qDebug() << mySocket->getUsername();
             mySocket -> deleteLater();   // 延迟释放空间，使用delete会报错！！！
             mySocket = nullptr;
             m_tcpSocketList.erase(it);

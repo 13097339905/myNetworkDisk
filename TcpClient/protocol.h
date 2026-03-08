@@ -27,6 +27,8 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_ADD_FRIEND_RESPOND,       // 添加好友回复
     ENUM_MSG_TYPE_ADD_FRIEND_AGREE,         // 同意添加好友消息
     ENUM_MSG_TYPE_ADD_FRIEND_REFUSE,        // 拒绝添加好友消息
+    ENUM_MSG_TYPE_SELECT_FRIEND_REQUEST,    // 查询所有好友请求
+    ENUM_MSG_TYPE_SELECT_FRIEND_RESPOND,    // 查询所有好友回复
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
 

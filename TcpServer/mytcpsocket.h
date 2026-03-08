@@ -41,6 +41,9 @@ private:
 
     // 处理客户端发过来的拒绝添加好友
     void handleRefuseRequest(PDU* pdu);
+
+    // 处理查询当前用户所有好友信息
+    void handleSelectFriend();
 };
 
 #endif // MYTCPSOCKET_H

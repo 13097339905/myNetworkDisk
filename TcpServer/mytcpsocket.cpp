@@ -166,6 +166,17 @@ void MyTcpSocket::handleRefuseRequest(PDU* pdu)
     MyTcpServer::getInstance().forwardPDU(pdu, myUsername);    // 转发给申请加好友的用户申请结果
 }
 
+// 处理查询当前用户所有好友信息
+void MyTcpSocket::handleSelectFriend()
+{
+    QString res = OperateDB::getInstance().selectFriend(m_username);     // 获取数据库的查询结果
+    PDU* selectFriendPDU = makePDU(res.size() + 1);                      // 新建PDU用来传输查询结果
+    strcpy((char*)selectFriendPDU->caMsg, res.toStdString().c_str());    // 将查询结果放入PDU中
+    selectFriendPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_RESPOND);   // 设置消息类型
+    this->write((char*)selectFriendPDU, selectFriendPDU->uiPDULen);      // 将PDU发送给查询的客户端
+    free(selectFriendPDU);        // 释放内存
+    selectFriendPDU = nullptr;
+}
 
 void MyTcpSocket::recvMsg()
 {
@@ -208,6 +219,10 @@ void MyTcpSocket::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REFUSE):     // 拒绝好友请求
         handleRefuseRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_REQUEST):     // 查询当前用户所有好友
+        handleSelectFriend();
         break;
 
 

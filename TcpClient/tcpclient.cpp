@@ -7,6 +7,7 @@
 #include <QHostAddress>
 #include "mainmenu.h"
 #include "ui_mainmenu.h"
+#include <iostream>
 
 TcpClient::TcpClient(QWidget *parent)
     : QWidget(parent)
@@ -235,6 +236,15 @@ void TcpClient::handleRefuseFriend(PDU* pdu)
     QMessageBox::information(this, "", "sorry," + QString(name) + " refuse you apply");
 }
 
+// 处理查询所有好友
+void TcpClient::handleSelectFriend(PDU* pdu)
+{
+    char res[pdu->uiMsgLen];
+    strcpy(res, (char*)pdu->caMsg);
+    QStringList ql = QString(res).split(',');
+    mainMenu::getInstance().setFriend(ql);
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -279,6 +289,10 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REFUSE):        // 收到拒绝加好友的消息
         handleRefuseFriend(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_RESPOND):    // 收到查询好友的回复
+        handleSelectFriend(pdu);
         break;
 
     }
