@@ -62,22 +62,6 @@ void TcpClient::loadConfig()
     }
 }
 
-//// 点击发送按钮后进行数据发送
-//void TcpClient::on_sendQPushButton_clicked()
-//{
-//    QString strMsg = ui->lineEdit->text();     // 获取输入框的文本
-//    if (strMsg.isEmpty())
-//    {
-//        QMessageBox::warning(this, "message send", "message is not allow null");
-//    }
-//    PDU* pdu = makePDU(strMsg.size());         // 创建一个PDU，用来发送消息类型
-//    pdu->uiMsgType = 8888;                     // 设置PDU的消息类型
-//    memcpy( pdu->caMsg, strMsg.toStdString().c_str(), strMsg.size());  // 将要发送的数据拷贝到pdu里面
-//    m_tcpSocket.write((char*)pdu, pdu->uiPDULen);      // 发送数据
-//    free(pdu);        // 释放内存
-//    pdu = nullptr;
-//}
-
 
 // 发送注册请求给服务器
 void TcpClient::on_registerPushButton_clicked()
@@ -154,27 +138,49 @@ void TcpClient::handleLoginRespond(PDU* pdu)
 // 处理服务器发来的查询所有在线用户的回复
 void TcpClient::handleSelectOnlineUserRespond(PDU* pdu)
 {
-    char onlineUser[pdu->uiMsgLen];
-    strcpy(onlineUser, (char*)pdu->caMsg);     // 将收到的在线用户存到onlineUser中;
+    for (int i = 0; i < pdu->uiMsgLen / 32; i++)
+    {
+        char substr[32];
+        strncpy(substr, pdu->caMsg + i * 32, 32);      // 每次从res中取出32个字节设置到在线好友上
+        qDebug() << substr;
+        mainMenu::getInstance().setOnlineUser(substr);
+    }
 
-    QStringList res = QString(onlineUser).split(',');
-    mainMenu::getInstance().setOnlineUser(res);
 }
+
+//void TcpClient::handleSelectOnlineUserRespond(PDU* pdu)
+//{
+//    QStringList onlineUsers;
+//    int userCount = pdu->uiMsgLen / 32;
+
+//    for (int i = 0; i < userCount; i++)
+//    {
+//        char substr[33] = {0};  // 32 + 1 用于终止符
+//        memcpy(substr, pdu->caMsg + i * 32, 32);
+
+//        QString user = QString::fromUtf8(substr);
+//        onlineUsers.append(user);
+//        qDebug() << "User" << i << ":" << user;
+//        mainMenu::getInstance().setOnlineUser(user);
+//    }
+
+//}
 
 // 处理服务器发来的搜索用户的回复
 void TcpClient::handleSearchUserRespond(PDU* pdu)
 {
-    if (strcmp(pdu->caData, SEARCH_USER_NOT_EIXST) == 0)
+    if (strcmp(pdu->caData, SEARCH_USER_NOT_EIXST) == 0)        // 搜索的用户不存在
     {
         QMessageBox::information(this, "search user", SEARCH_USER_NOT_EIXST);
     }
-    else if (strcmp(pdu->caData, SEARCH_USER_NOT_ONLINE) == 0)
+    else if (strcmp(pdu->caData, SEARCH_USER_NOT_ONLINE) == 0)  // 搜索的用户不在线
     {
         QMessageBox::information(this, "search user", SEARCH_USER_NOT_ONLINE);
     }
-    else if (strcmp(pdu->caData, SEARCH_USER_ONLINE) == 0)
+    else     // 搜索的用户在线
     {
-        QString username = mainMenu::getInstance().m_username;
+        char username[32];
+        strcpy(username, pdu->caData);
         mainMenu::getInstance().setOnlineUser(username);
     }
 }
@@ -239,10 +245,12 @@ void TcpClient::handleRefuseFriend(PDU* pdu)
 // 处理查询所有好友
 void TcpClient::handleSelectFriend(PDU* pdu)
 {
-    char res[pdu->uiMsgLen];
-    strcpy(res, (char*)pdu->caMsg);
-    QStringList ql = QString(res).split(',');
-    mainMenu::getInstance().setFriend(ql);
+    for (int i = 0; i < pdu->uiMsgLen / 32; i++)
+    {
+        char substr[32];
+        strncpy(substr, pdu->caMsg + i * 32, 32);              // 每次从res中取出32个字节设置到在线好友上
+        mainMenu::getInstance().setFriend(substr);
+    }
 }
 
 void TcpClient::recvMsg()

@@ -39,7 +39,7 @@ public:
     void updateOnline(const QString username);
 
     // 查询在线用户
-    QString selectOnlineUser();
+    QStringList selectOnlineUser();
 
     // 查找用户
     int searchUser(const QString username);
@@ -51,7 +51,7 @@ public:
     bool insertFriendInfo(const QString myUsername, const QString username);
 
     // 查询当前用户所有好友
-    QString selectFriend(const QString username);
+    QStringList selectFriend(const QString username);
 
 signals:
 

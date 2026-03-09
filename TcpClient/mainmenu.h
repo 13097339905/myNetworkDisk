@@ -26,27 +26,32 @@ public:
     void setOnlineUser(QStringList sl);
     void setOnlineUser(QString s);
 
+    // 在登录完成后设置自己的用户名，保存起来
     void setMyUsername(QString name);
+
+    // 获取用户名
     QString getMyUsername() const;
 
-    QString m_username;
-
-    void setFriend(QStringList sl);
+    // 设置显示在线的好友
+    void setFriend(QString s);
 
 private slots:
-    // 显示所有在线用户按钮的槽函数，实现点击转变状态（显示或者不显示）
+    // 显示所有在线用户按钮的槽函数
     void on_showOnlinePushButton_clicked();
 
+    // 查找用户槽函数
     void on_findPushButton_clicked();
 
+    // 添加好友槽函数
     void on_addFriendPushButton_clicked();
 
+    // 刷新在线好友槽函数
     void on_flushPushButton_clicked();
 
 private:
     Ui::mainMenu *ui;
 
-    QString m_myUsername;
+    QString m_myUsername;   // 在登录完成到主页面后保存自己用户名
 };
 
 #endif // MAINMENU_H

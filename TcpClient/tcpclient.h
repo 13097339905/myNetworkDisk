@@ -22,7 +22,6 @@ private:
     // 读取配置文件中的信息
     void loadConfig();
 
-
     // 处理服务器发来的注册回复
     void handleRegisterRespond(PDU* pdu);
 
@@ -66,7 +65,6 @@ private slots:
     void on_registerPushButton_clicked();
 
     void on_cancellationPushButton_clicked();
-
 
     void recvMsg();
 

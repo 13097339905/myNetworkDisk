@@ -4,6 +4,7 @@
 #include "tcpclient.h"
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QTimer>
 
 mainMenu::mainMenu(QWidget *parent) :
     QWidget(parent),
@@ -17,9 +18,15 @@ mainMenu::mainMenu(QWidget *parent) :
     // 4. QStackedWidget 根据收到的行号切换到对应索引的页面
     connect(ui->listWidget, &QListWidget::currentRowChanged, ui->stackedWidget, &QStackedWidget::setCurrentIndex);
 
-    on_showOnlinePushButton_clicked();    // 一跑起来就显示所有在线用户
 
-    on_flushPushButton_clicked();         // 一跑起来就显示所有好友
+    on_flushPushButton_clicked();           // 一跑起来就显示所有好友
+//    on_showOnlinePushButton_clicked();    // 一跑起来就显示所有在线用户
+
+    // 延迟发送第二个请求，避免冲突，不然会导致粘包，丢失第二个请求
+    QTimer::singleShot(100, this, [this]() {
+        on_showOnlinePushButton_clicked();
+    });
+
 }
 
 mainMenu::~mainMenu()
@@ -33,15 +40,9 @@ mainMenu &mainMenu::getInstance()
     return m;
 }
 
-void mainMenu::setOnlineUser(QStringList sl)
-{
-    ui->onlineUserListWidget->clear();
-    ui->onlineUserListWidget->addItems(sl);
-}
 
 void mainMenu::setOnlineUser(QString s)
 {
-    ui->onlineUserListWidget->clear();
     ui->onlineUserListWidget->addItem(s);
 }
 
@@ -55,10 +56,9 @@ QString mainMenu::getMyUsername() const
     return m_myUsername;
 }
 
-void mainMenu::setFriend(QStringList sl)
+void mainMenu::setFriend(QString s)
 {
-    ui->friendListWidget->clear();
-    ui->friendListWidget->addItems(sl);
+    ui->friendListWidget->addItem(s);
 }
 
 
@@ -66,32 +66,14 @@ void mainMenu::setFriend(QStringList sl)
 // 显示所有在线用户按钮的槽函数
 void mainMenu::on_showOnlinePushButton_clicked()
 {
-    ui->onlineUserListWidget->show();
-    ui->addFriendPushButton->show();
+    ui->onlineUserListWidget->clear();     // 先把之前的状态清空掉，再重新向服务器发送请求得到结果刷新列表
     // 发送给服务器查看所有在线用户的请求，服务器收到请求后开始查询在线用户，再将查到的结果发回给客户端，再显示
     PDU* pdu = makePDU(0);      // 只需要发请求，没有附加的文件，所以开0的就行
     pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_REQUEST);   // 设置消息类型
-    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将查询在线用户的请求发出去
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将查询在线用户的请求发给服务器
     free(pdu);
     pdu = nullptr;
-//    if (ui->onlineUserListWidget->isHidden())     // 如果是隐藏的，点击就显示
-//    {
-//        ui->onlineUserListWidget->show();
-//        ui->addFriendPushButton->show();
-//        // 发送给服务器查看所有在线用户的请求，服务器收到请求后开始查询在线用户，再将查到的结果发回给客户端，再显示
-//        PDU* pdu = makePDU(0);      // 只需要发请求，没有附加的文件，所以开0的就行
-//        pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_REQUEST);   // 设置消息类型
-//        TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将查询在线用户的请求发出去
-//        free(pdu);
-//        pdu = nullptr;
-//    }
-//    else                                          // 如果是显示的，点击就隐藏
-//    {
-//        ui->onlineUserListWidget->hide();
-//        ui->addFriendPushButton->hide();
-//    }
 }
-
 
 // 查找用户槽函数
 void mainMenu::on_findPushButton_clicked()
@@ -102,15 +84,15 @@ void mainMenu::on_findPushButton_clicked()
     if (!isSearch)
         return;
 
-    m_username = username;
     PDU* pdu = makePDU(0);
     pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SEARCH_USER_REQUEST);   // 设置消息类型
     strcpy(pdu->caData, username.toStdString().c_str());    // 将想搜索的用户名拷贝到pdu中
 
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);    // 将消息发送给服务器
+    ui->onlineUserListWidget->clear();     // 先把之前的状态清空掉，再重新向服务器发送请求得到结果刷新列表
 }
 
-// 添加好友
+// 添加好友的槽函数
 void mainMenu::on_addFriendPushButton_clicked()
 {
     QListWidgetItem * item = ui->onlineUserListWidget->currentItem();   // 得到当前列表指向的item
@@ -137,12 +119,14 @@ void mainMenu::on_addFriendPushButton_clicked()
     pdu = nullptr;
 }
 
+// 刷新在线好友的槽函数
 void mainMenu::on_flushPushButton_clicked()
 {
+    ui->friendListWidget->clear();    // 先把之前的状态清空掉，再重新向服务器发送请求得到结果刷新列表
     // 发送给服务器，查询当前用户的所有好友
     PDU* pdu = makePDU(0);
     pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_REQUEST);
-    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);   // 因为服务器端的socket存了当前socket登录的用户名，所以这里不需要将用户名写进去发给服务器
     free(pdu);
     pdu = nullptr;
 }

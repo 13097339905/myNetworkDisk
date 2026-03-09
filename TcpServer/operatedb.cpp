@@ -119,7 +119,7 @@ void OperateDB::updateOnline(const QString username)
 }
 
 // 不能根据逗号进行分隔开，需要改一下
-QString OperateDB::selectOnlineUser()
+QStringList OperateDB::selectOnlineUser()
 {
     QSqlQuery query;
     query.prepare("select name from userinfo where online = :online");
@@ -128,11 +128,15 @@ QString OperateDB::selectOnlineUser()
     {
         qDebug() << "查询失败:" << query.lastError().text();
     }
-    QString onlineUser;
+    QStringList onlineUser;
     while (query.next())
     {
-        onlineUser += query.value(0).toString();
-        onlineUser += ',';     // 根据,逗号进行分隔
+        char res[32];
+        strcpy(res, query.value(0).toString().toStdString().c_str());
+        onlineUser.push_back(res);
+//        qDebug() << res;
+//        onlineUser += query.value(0).toString();
+//        onlineUser += ',';     // 根据,逗号进行分隔
     }
     return onlineUser;
 }
@@ -230,7 +234,7 @@ bool OperateDB::insertFriendInfo(const QString myUsername, const QString usernam
 }
 
 // 查询当前用户的所有好友返回去
-QString OperateDB::selectFriend(const QString username)
+QStringList OperateDB::selectFriend(const QString username)
 {
     QSqlQuery query;
     query.prepare("select id from userinfo where name = :username");    // 先把当前用户的id查出来存到myId
@@ -238,34 +242,37 @@ QString OperateDB::selectFriend(const QString username)
     if (!query.exec())
     {
         qDebug() << "查询失败:" << query.lastError().text();
-        return "";
+        return {};
     }
     query.next();
     int myId = query.value(0).toInt();
 
-    QString res = "";
     query.prepare("select friendId from friendInfo where id = :myId");     // 查出myId的好友friendId
     query.bindValue(":myId", myId);
     if (!query.exec())
     {
         qDebug() << "查询失败:" << query.lastError().text();
-        return "";
+        return {};
     }
 
-    query.prepare("select name, online from userinfo where id in "
-                  "((select friendId from friendInfo where id = :myId) union (select id from friendInfo where friendId = :myId))");
+    query.prepare("select name from userinfo where id in "
+                  "((select friendId from friendInfo where id = :myId) union (select id from friendInfo where friendId = :myId)) and online = 1");
     query.bindValue(":myId", myId);
     if (!query.exec())
     {
         qDebug() << "查询失败:" << query.lastError().text();
-        return "";
+        return {};
     }
-    while (query.next())     // 不能根据逗号进行分隔开，需要改一下
+    QStringList qs;
+    while (query.next())     // 不能根据逗号进行分隔开，需要改一下，万一别人用户名中有逗号就会出错
     {
-        res += query.value(0).toString();
-        res += ' ';
-        res += query.value(1).toInt() == 1 ? "1" : "0";
-        res += ',';
+        char res[32];
+        strcpy(res, query.value(0).toString().toStdString().c_str());
+        qs.push_back(res);
+//        res += query.value(0).toString();
+//        res += ' ';
+//        res += query.value(1).toInt() == 1 ? "1" : "0";
+//        res += ',';
     }
-    return res;
+    return qs;
 }

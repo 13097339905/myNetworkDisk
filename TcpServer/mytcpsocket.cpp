@@ -69,11 +69,15 @@ void MyTcpSocket::handleLoginRequest(PDU* pdu)
 // 处理客户端发过来的查询所有在线用户请求
 void MyTcpSocket::handleSelectOnlineRequest()
 {
-    QString onlineUser = OperateDB::getInstance().selectOnlineUser();
-    PDU* selectOnlineUserPDU = makePDU(onlineUser.size() + 1);   // 初始化查询结果返回去的PDU
+    QStringList res = OperateDB::getInstance().selectOnlineUser();
+    PDU* selectOnlineUserPDU = makePDU(res.size() * 32);   // 初始化查询结果返回去的PDU
+
+    for (int i = 0; i < res.size(); i++)
+    {
+        strncpy(selectOnlineUserPDU->caMsg + i * 32, res[i].toStdString().c_str(), 32);    // 将查询结果放入PDU中
+    }
     selectOnlineUserPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND);  // 设置消息类型
 
-    strcpy((char*)selectOnlineUserPDU->caMsg, onlineUser.toStdString().c_str());    // 将查询好的结果存到消息里面
     this->write((char*)selectOnlineUserPDU, selectOnlineUserPDU->uiPDULen);         // 将查询结果封装到PDU后发送回客户端
     free(selectOnlineUserPDU);
     selectOnlineUserPDU = nullptr;
@@ -84,7 +88,7 @@ void MyTcpSocket::handleSearchUserRequest(PDU* pdu)
 {
     QString username;
     username = QString(pdu->caData);      // 获取用户发过来的要查询的用户名
-    qDebug() << username;
+    //qDebug() << username;
 
     int res = OperateDB::getInstance().searchUser(username);    // 到数据库查询该用户得到结果
 
@@ -100,7 +104,7 @@ void MyTcpSocket::handleSearchUserRequest(PDU* pdu)
     }
     else if (res == USER_IS_ONLINE)
     {
-        strcpy(searchUserPDU->caData, SEARCH_USER_ONLINE);
+        strcpy(searchUserPDU->caData, username.toStdString().c_str());
     }
     this->write((char*)searchUserPDU, searchUserPDU->uiPDULen);    // 向客户端发出回复
     free(searchUserPDU);
@@ -169,9 +173,12 @@ void MyTcpSocket::handleRefuseRequest(PDU* pdu)
 // 处理查询当前用户所有好友信息
 void MyTcpSocket::handleSelectFriend()
 {
-    QString res = OperateDB::getInstance().selectFriend(m_username);     // 获取数据库的查询结果
-    PDU* selectFriendPDU = makePDU(res.size() + 1);                      // 新建PDU用来传输查询结果
-    strcpy((char*)selectFriendPDU->caMsg, res.toStdString().c_str());    // 将查询结果放入PDU中
+    QStringList res = OperateDB::getInstance().selectFriend(m_username); // 获取数据库的查询结果
+    PDU* selectFriendPDU = makePDU(res.size() * 32);                     // 新建PDU用来传输查询结果
+    for (int i = 0; i < res.size(); i++)
+    {
+        strncpy(selectFriendPDU->caMsg + i * 32, res[i].toStdString().c_str(), 32);    // 将查询结果放入PDU中
+    }
     selectFriendPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_RESPOND);   // 设置消息类型
     this->write((char*)selectFriendPDU, selectFriendPDU->uiPDULen);      // 将PDU发送给查询的客户端
     free(selectFriendPDU);        // 释放内存
@@ -232,3 +239,4 @@ void MyTcpSocket::recvMsg()
     free(pdu);
     pdu = nullptr;
 }
+
