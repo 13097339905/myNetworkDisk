@@ -44,6 +44,9 @@ private:
 
     // 处理查询当前用户所有好友信息
     void handleSelectFriend();
+
+    // 处理删除好友的消息
+    void handleDeleteFriend(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

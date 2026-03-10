@@ -48,6 +48,8 @@ private slots:
     // 刷新在线好友槽函数
     void on_flushPushButton_clicked();
 
+    void on_deletePushButton_clicked();
+
 private:
     Ui::mainMenu *ui;
 

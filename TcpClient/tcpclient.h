@@ -49,6 +49,12 @@ private:
     // 处理查询所有好友
     void handleSelectFriend(PDU* pdu);
 
+    // 处理删除好友的回复
+    void handleDeleteFriendRespond(PDU* pdu);
+
+    // 处理删除好友的请求
+    void handleDeleteFriendRequest(PDU* pdu);
+
 public:
     // 由于需要在主菜单页面中也需要socket与服务器进行通信，但是socket之前是TcpClient的私有成员
     // 所以需要改变一下，看怎么能让mainMenu也能拿到socket进行通信

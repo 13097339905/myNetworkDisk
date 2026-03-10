@@ -53,6 +53,8 @@ public:
     // 查询当前用户所有好友
     QStringList selectFriend(const QString username);
 
+    bool deleteFriend(const QString myUsername, const QString username);
+
 signals:
 
 private:

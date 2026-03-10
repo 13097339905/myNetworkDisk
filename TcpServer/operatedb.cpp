@@ -276,3 +276,31 @@ QStringList OperateDB::selectFriend(const QString username)
     }
     return qs;
 }
+
+// 删除好友
+bool OperateDB::deleteFriend(const QString myUsername, const QString username)
+{
+    QSqlQuery query;
+    query.prepare("select id from userinfo where name = :myUsername or name = :username");
+    query.bindValue(":myUsername", myUsername);
+    query.bindValue(":username", username);
+    if (!query.exec())
+    {
+        qDebug() << "查询失败:" << query.lastError().text();
+        return false;
+    }
+    query.next();
+    int id1 = query.value(0).toInt();    // 获取到两个id
+    query.next();
+    int id2 = query.value(0).toInt();
+
+    query.prepare("delete from friendInfo where (id = :id1 and friendid = :id2) or (id = :id2 and friendid = :id1)");
+    query.bindValue(":id1", id1);
+    query.bindValue(":id2", id2);
+    if (!query.exec())
+    {
+        qDebug() << "删除失败:" << query.lastError().text();
+        return false;
+    }
+    return true;
+}

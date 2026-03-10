@@ -185,6 +185,27 @@ void MyTcpSocket::handleSelectFriend()
     selectFriendPDU = nullptr;
 }
 
+// 处理删除好友的消息
+void MyTcpSocket::handleDeleteFriend(PDU* pdu)
+{
+    char username[32];
+    memcpy(username, pdu->caData, 32);     // 获取要删除的名字
+    bool tag = OperateDB::getInstance().deleteFriend(m_username, username);   // 将自己的名字和要删除的名字传进去数据库操作
+    if (!tag)
+    {
+        return;
+    }
+    PDU* deleteFriendPDU = makePDU(0);
+    deleteFriendPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND);
+    memcpy(deleteFriendPDU->caData, username, 32);
+    this->write((char*)deleteFriendPDU, deleteFriendPDU->uiPDULen);          // 发送给请求的客户端
+    MyTcpServer::getInstance().forwardPDU(pdu, username);        // 转发给被删除的
+
+    free(deleteFriendPDU);
+    deleteFriendPDU = nullptr;
+
+}
+
 void MyTcpSocket::recvMsg()
 {
 //    qDebug() << this->bytesAvailable();
@@ -230,6 +251,10 @@ void MyTcpSocket::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_REQUEST):     // 查询当前用户所有好友
         handleSelectFriend();
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST):
+        handleDeleteFriend(pdu);
         break;
 
 

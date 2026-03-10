@@ -43,12 +43,15 @@ mainMenu &mainMenu::getInstance()
 
 void mainMenu::setOnlineUser(QString s)
 {
+    if (s == mainMenu::getInstance().m_myUsername)
+        return;
     ui->onlineUserListWidget->addItem(s);
 }
 
 void mainMenu::setMyUsername(QString name)
 {
     m_myUsername = name;
+    ui->welcomeLabel->setText(name + "的聊天框");
 }
 
 QString mainMenu::getMyUsername() const
@@ -127,6 +130,25 @@ void mainMenu::on_flushPushButton_clicked()
     PDU* pdu = makePDU(0);
     pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_REQUEST);
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);   // 因为服务器端的socket存了当前socket登录的用户名，所以这里不需要将用户名写进去发给服务器
+    free(pdu);
+    pdu = nullptr;
+}
+
+// 删除好友的槽函数
+void mainMenu::on_deletePushButton_clicked()
+{
+    QListWidgetItem* item = ui->friendListWidget->currentItem();
+    if (item == nullptr)
+    {
+        QMessageBox::information(this, "delete friend", "please select a online friend");
+        return;
+    }
+    PDU* pdu = makePDU(0);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST);   // 设置删除好友的类型请求
+
+    memcpy(pdu->caData, item->text().toStdString().c_str(), 32);       // 将要删除的好友的名字放到caData的前32个字节
+    memcpy(pdu->caData + 32, m_myUsername.toStdString().c_str(), 32);  // 将自己的名字放到后32字节
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);
     pdu = nullptr;
 }

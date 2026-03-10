@@ -135,6 +135,22 @@ void TcpClient::handleLoginRespond(PDU* pdu)
     }
 }
 
+//void TcpClient::handleSelectOnlineUserRespond(PDU* pdu)
+//{
+
+//    char onlineUsers[pdu->uiMsgLen];
+//    // 就是这一步错了，strcpy拷贝所有的用户到onlineUsers，但是第一个用户后面有/0，所以第一个用户能正常显示
+//    // strcpy看到/0就结束了，后面的就不拷贝了，所以第一个用户显示正常，后面的用户全是乱码
+//    strcpy(onlineUsers, (char*)pdu->caMsg);     // 将收到的在线用户存到onlineUser中;
+//    for (int i = 0; i < pdu->uiMsgLen / 32; i++)
+//    {
+//        char substr[32];
+//        strncpy(substr, onlineUsers + i * 32, 32);      // 每次从res中取出32个字节设置到在线好友上
+//        qDebug() << substr;
+//        mainMenu::getInstance().setOnlineUser(substr);
+//    }
+//}
+
 // 处理服务器发来的查询所有在线用户的回复
 void TcpClient::handleSelectOnlineUserRespond(PDU* pdu)
 {
@@ -148,23 +164,6 @@ void TcpClient::handleSelectOnlineUserRespond(PDU* pdu)
 
 }
 
-//void TcpClient::handleSelectOnlineUserRespond(PDU* pdu)
-//{
-//    QStringList onlineUsers;
-//    int userCount = pdu->uiMsgLen / 32;
-
-//    for (int i = 0; i < userCount; i++)
-//    {
-//        char substr[33] = {0};  // 32 + 1 用于终止符
-//        memcpy(substr, pdu->caMsg + i * 32, 32);
-
-//        QString user = QString::fromUtf8(substr);
-//        onlineUsers.append(user);
-//        qDebug() << "User" << i << ":" << user;
-//        mainMenu::getInstance().setOnlineUser(user);
-//    }
-
-//}
 
 // 处理服务器发来的搜索用户的回复
 void TcpClient::handleSearchUserRespond(PDU* pdu)
@@ -253,6 +252,22 @@ void TcpClient::handleSelectFriend(PDU* pdu)
     }
 }
 
+// 处理删除好友的回复
+void TcpClient::handleDeleteFriendRespond(PDU *pdu)
+{
+    char username[32];
+    memcpy(username, pdu->caData, 32);
+    QMessageBox::information(this, "delete friend", QString(username) + " already be deleted");
+}
+
+// 处理删除好友的请求
+void TcpClient::handleDeleteFriendRequest(PDU *pdu)
+{
+    char username[32];
+    memcpy(username, pdu->caData + 32, 32);
+    QMessageBox::information(this, "delete friend", QString(username) + " delete you");
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -301,6 +316,14 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_RESPOND):    // 收到查询好友的回复
         handleSelectFriend(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND):    // 收到删除好友的回复
+        handleDeleteFriendRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST):    // 被删除的收到删除好友的请求
+        handleDeleteFriendRequest(pdu);
         break;
 
     }
