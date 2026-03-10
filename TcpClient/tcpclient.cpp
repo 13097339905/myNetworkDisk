@@ -383,5 +383,13 @@ void TcpClient::recvMsg()
 // 发送登录请求给服务器
 void TcpClient::on_loginPushButtone_clicked()
 {
-
+    QString username = ui->usernameLineEdit->text();
+    QString password = ui->passwordLineEdit->text();
+    PDU* pdu = makePDU(0);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_REQUEST);
+    strncpy(pdu->caData, username.toStdString().c_str(), 32);
+    strncpy(pdu->caData + 32, password.toStdString().c_str(), 32);
+    m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
 }
