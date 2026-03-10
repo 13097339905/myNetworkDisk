@@ -39,6 +39,8 @@ public:
 
     QMap<QString, privateChat*> m_privateChatMap;    // 存储当前客户端开的私聊窗口
 
+    void setGroup(QString username, QString msg);
+
 private slots:
     // 显示所有在线用户按钮的槽函数
     void on_showOnlinePushButton_clicked();
@@ -55,6 +57,8 @@ private slots:
     void on_deletePushButton_clicked();
 
     void on_privateChatPushButton_clicked();
+
+    void on_sendPushButton_clicked();
 
 private:
     Ui::mainMenu *ui;

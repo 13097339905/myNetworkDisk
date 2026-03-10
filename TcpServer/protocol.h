@@ -35,7 +35,6 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_PRIVATE_CHAT_REQUEST,    // 私聊好友请求
     ENUM_MSG_TYPE_PRIVATE_CHAT_RESPOND,    // 私聊好友回复
     ENUM_MSG_TYPE_GROUP_CHAT_REQUEST,    // 私聊好友请求
-    ENUM_MSG_TYPE_GROUP_CHAT_RESPOND,    // 私聊好友回复
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
 

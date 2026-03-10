@@ -50,7 +50,7 @@ public:
     // 添加好友
     bool insertFriendInfo(const QString myUsername, const QString username);
 
-    // 查询当前用户所有好友
+    // 查询当前用户在线好友
     QStringList selectFriend(const QString username);
 
     bool deleteFriend(const QString myUsername, const QString username);

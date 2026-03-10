@@ -230,6 +230,19 @@ void MyTcpSocket::handlePrivateChat(PDU* pdu)
     privateChatPDU = nullptr;
 }
 
+// 处理群发请求
+void MyTcpSocket::handleGroupChat(PDU* pdu)
+{
+    // 只需要将pdu转发给在线的好友用户就可以了
+    char username[32];
+    memcpy(username, pdu->caData, 32);     // 获取当前用户
+    QStringList res = OperateDB::getInstance().selectFriend(username);  // 查询得到当前用户的在线好友
+    for (int i = 0; i < res.size(); i++)
+    {
+        MyTcpServer::getInstance().forwardPDU(pdu, res[i]);     // 转发给所有在线的好友
+    }
+}
+
 void MyTcpSocket::recvMsg()
 {
 //    qDebug() << this->bytesAvailable();
@@ -285,7 +298,9 @@ void MyTcpSocket::recvMsg()
         handlePrivateChat(pdu);
         break;
 
-
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_GROUP_CHAT_REQUEST):      // 群发请求
+        handleGroupChat(pdu);
+        break;
 
     default:
         break;

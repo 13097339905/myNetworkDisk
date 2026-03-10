@@ -65,6 +65,11 @@ void mainMenu::setFriend(QString s)
     ui->friendListWidget->addItem(s);
 }
 
+void mainMenu::setGroup(QString username, QString msg)
+{
+    ui->messageTextEdit->append(username + ":  " + msg);
+}
+
 
 
 // 显示所有在线用户按钮的槽函数
@@ -191,5 +196,17 @@ void mainMenu::on_privateChatPushButton_clicked()
 // 点击群发触发的槽函数
 void mainMenu::on_sendPushButton_clicked()
 {
+    QString qsMsg = ui->sendMsgLineEdit->text();   // 获取用户在发送框输入的消息
+    ui->sendMsgLineEdit->clear();                  // 获取之后输入框就可以清空了
+    QByteArray qbaMsg = qsMsg.toUtf8();        // 将QString转换成QByteArray，因为用户可能输入中文，得到的消息的准确字节数，得用QByteArray
+    PDU* pdu = makePDU(qbaMsg.size());         // 这里的size就是字节长度，而不是字符个数
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_GROUP_CHAT_REQUEST);
+    memcpy(pdu->caData, m_myUsername.toStdString().c_str(), 32);       // 将自己的用户名写入caData前32字节
+    memcpy(pdu->caMsg, qbaMsg.data(), qbaMsg.size());                  // 将用户输入的消息拷贝到caMsg
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);   // 将群发的消息发送给服务器
 
+    ui->messageTextEdit->append(m_myUsername + ":  " + qsMsg);  // 将发送的消息在聊天框
+
+    free(pdu);
+    pdu = nullptr;
 }

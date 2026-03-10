@@ -309,6 +309,15 @@ void TcpClient::handlePrivateChatRespond(PDU* pdu)
     }
 }
 
+// 处理收到群聊消息的请求
+void TcpClient::handleGroupChatRequest(PDU* pdu)
+{
+    char username[32];
+    memcpy(username, pdu->caData, 32);
+    QString msg = QString::fromUtf8(pdu->caMsg);     // UTF-8
+    mainMenu::getInstance().setGroup(username, msg);
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -373,6 +382,10 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_RESPOND):    // 处理收到好友私聊的回复
         handlePrivateChatRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_GROUP_CHAT_REQUEST):    // 处理收到群聊的请求
+        handleGroupChatRequest(pdu);
         break;
 
     }

@@ -234,7 +234,7 @@ bool OperateDB::insertFriendInfo(const QString myUsername, const QString usernam
     return true;
 }
 
-// 查询当前用户的所有好友返回去
+// 查询当前用户的所有在线好友返回去
 QStringList OperateDB::selectFriend(const QString username)
 {
     QSqlQuery query;

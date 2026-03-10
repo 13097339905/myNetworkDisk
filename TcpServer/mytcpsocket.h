@@ -50,6 +50,9 @@ private:
 
     // 处理私聊请求
     void handlePrivateChat(PDU* pdu);
+
+    // 处理群发请求
+    void handleGroupChat(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H
