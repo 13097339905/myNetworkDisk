@@ -219,7 +219,7 @@ void MyTcpSocket::handlePrivateChat(PDU* pdu)
     privateChatPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_RESPOND);
     if (OperateDB::getInstance().searchUser(username) == USER_NOT_ONLINE)   // 判断要私聊的对象不在线
     {
-        strcmp(privateChatPDU->caData, FRIEND_NOT_ONLINE);      // 设置私聊的好友不在线的消息
+        strcpy(privateChatPDU->caData, FRIEND_NOT_ONLINE);      // 设置私聊的好友不在线的消息
     }
     else     // 在线的话就把消息转发给要私聊的
     {
@@ -239,7 +239,12 @@ void MyTcpSocket::handleGroupChat(PDU* pdu)
     QStringList res = OperateDB::getInstance().selectFriend(username);  // 查询得到当前用户的在线好友
     for (int i = 0; i < res.size(); i++)
     {
-        MyTcpServer::getInstance().forwardPDU(pdu, res[i]);     // 转发给所有在线的好友
+        // 为每个客户端创建一个新的PDU对象，避免共享同一个PDU导致数据混乱
+        PDU* newPdu = makePDU(pdu->uiMsgLen);
+        memcpy(newPdu, pdu, pdu->uiPDULen);
+        MyTcpServer::getInstance().forwardPDU(newPdu, res[i]);     // 转发给所有在线的好友
+        free(newPdu);
+        newPdu = nullptr;
     }
 }
 

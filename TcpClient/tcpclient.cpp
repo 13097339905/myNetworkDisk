@@ -276,7 +276,16 @@ void TcpClient::handlePrivateChatRequest(PDU* pdu)
     memcpy(username, pdu->caData, 32);     // 这是收到私聊请求的客户端，所以名字要反过来读取，先读username
     memcpy(myUsername, pdu->caData + 32, 32);
 
-    QString msg = QString::fromUtf8(pdu->caMsg);         // UTF-8
+    // 修改前：依赖 \0，不安全
+    // QString msg = QString::fromUtf8(pdu->caMsg);
+    // makePDU 分配的内存正好只能装下消息内容， 并没有在末尾多分配一个字节来存放 \0 。
+    // 虽然 makePDU 内部可能调用了 memset 清零，但 memcpy 把分配的 caMsg 区域填满了，导致 caMsg 变成了一个 非 Null 结尾 的字符数组。
+    // QString::fromUtf8(const char *str) 默认认为传入的是一个标准的 C 风格字符串，它会从 pdu->caMsg 开始读取，一直读到遇到 \0 为止。
+    // 由于 pdu->caMsg 末尾没有 \0 ，函数会继续向后读取属于其他变量或未分配的内存区域，直到运气好碰巧遇到一个 0 字节。
+
+    // 修改后：指定长度读取，安全
+    // 显式告诉 QString 消息的长度 ，这样它就不会依赖 \0 来判断结束了。
+    QString msg = QString::fromUtf8(pdu->caMsg, pdu->uiMsgLen);         // UTF-8
 
     // 如果已经和改用户打开过私聊窗口了，就直接在之前的窗口追加显示
     if (mainMenu::getInstance().m_privateChatMap.find(username) != mainMenu::getInstance().m_privateChatMap.end())
@@ -314,7 +323,11 @@ void TcpClient::handleGroupChatRequest(PDU* pdu)
 {
     char username[32];
     memcpy(username, pdu->caData, 32);
-    QString msg = QString::fromUtf8(pdu->caMsg);     // UTF-8
+    // 修改前：依赖 \0，不安全
+    // QString msg = QString::fromUtf8(pdu->caMsg);
+
+    // 修改后：指定长度读取，安全
+    QString msg = QString::fromUtf8(pdu->caMsg, pdu->uiMsgLen);     // UTF-8
     mainMenu::getInstance().setGroup(username, msg);
 }
 
