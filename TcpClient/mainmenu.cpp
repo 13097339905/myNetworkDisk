@@ -5,6 +5,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QTimer>
+#include <privatechat.h>
 
 mainMenu::mainMenu(QWidget *parent) :
     QWidget(parent),
@@ -51,7 +52,7 @@ void mainMenu::setOnlineUser(QString s)
 void mainMenu::setMyUsername(QString name)
 {
     m_myUsername = name;
-    ui->welcomeLabel->setText(name + "的聊天框");
+    ui->welcomeLabel->setText(name + "的群聊框");
 }
 
 QString mainMenu::getMyUsername() const
@@ -151,4 +152,44 @@ void mainMenu::on_deletePushButton_clicked()
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);
     pdu = nullptr;
+}
+
+// 点击私聊触发的槽函数
+void mainMenu::on_privateChatPushButton_clicked()
+{
+    // 选中好友进行私聊
+    QString username;
+    QListWidgetItem* item = ui->friendListWidget->currentItem();
+    if (item == nullptr)   // 不选用户不能私聊
+    {
+        QMessageBox::information(this, "private chat", "please select a online friend to chat");
+        return;
+    }
+    username = item->text();    // 获取要进行私聊的用户名
+    if (m_privateChatMap.find(username) != m_privateChatMap.end())   // 如果已经打开过私聊窗口了，就直接return
+    {
+        QMessageBox::information(this, "private chat", "already open the private chat window with " + username);
+        return;
+    }
+
+    // 新开一个窗口进行私聊
+    privateChat* newChat = new privateChat(m_myUsername, username);  // 默认叉掉窗口是隐藏窗口，所以需要设置属性
+    newChat->setAttribute(Qt::WA_DeleteOnClose);       // 设置成窗口关闭时自动销毁对象，从而触发destroyed信号
+    m_privateChatMap.insert(username, newChat);
+    newChat->show();
+
+    // 如果关闭窗口就销毁对象，并且从map里面删除
+    connect(newChat, &privateChat::destroyed, this, [this, username](){
+//        QMap<QString, privateChat*>::iterator it = m_privateChatMap.find(username);   // 找到是哪个窗口
+//        delete it.value();            // 销毁对象，所以槽函数这里也不需要自己delete对象了
+//        it.value() = nullptr;
+        qDebug() << username;
+        m_privateChatMap.remove(username);   // 从map里面删除，直接利用key删除，不需要迭代器获取value去delete了
+    });
+}
+
+// 点击群发触发的槽函数
+void mainMenu::on_sendPushButton_clicked()
+{
+
 }

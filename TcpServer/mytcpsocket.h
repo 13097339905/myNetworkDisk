@@ -47,6 +47,9 @@ private:
 
     // 处理删除好友的消息
     void handleDeleteFriend(PDU* pdu);
+
+    // 处理私聊请求
+    void handlePrivateChat(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

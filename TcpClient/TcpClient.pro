@@ -18,16 +18,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     mainmenu.cpp \
+    privatechat.cpp \
     protocol.cpp \
     tcpclient.cpp
 
 HEADERS += \
     mainmenu.h \
+    privatechat.h \
     protocol.h \
     tcpclient.h
 
 FORMS += \
     mainmenu.ui \
+    privatechat.ui \
     tcpclient.ui
 
 # Default rules for deployment.

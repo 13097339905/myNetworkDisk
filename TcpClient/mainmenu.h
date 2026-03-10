@@ -3,6 +3,8 @@
 
 #include <QWidget>
 #include <QString>
+#include "privatechat.h"
+#include <QMap>
 
 namespace Ui {
 class mainMenu;
@@ -35,6 +37,8 @@ public:
     // 设置显示在线的好友
     void setFriend(QString s);
 
+    QMap<QString, privateChat*> m_privateChatMap;    // 存储当前客户端开的私聊窗口
+
 private slots:
     // 显示所有在线用户按钮的槽函数
     void on_showOnlinePushButton_clicked();
@@ -49,6 +53,8 @@ private slots:
     void on_flushPushButton_clicked();
 
     void on_deletePushButton_clicked();
+
+    void on_privateChatPushButton_clicked();
 
 private:
     Ui::mainMenu *ui;

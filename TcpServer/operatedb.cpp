@@ -159,6 +159,7 @@ int OperateDB::searchUser(const QString username)
     return online == 1 ? USER_IS_ONLINE : USER_NOT_ONLINE;
 }
 
+
 int OperateDB::addFriendSearch(const QString myUsername, const QString username)
 {
     QSqlQuery query;

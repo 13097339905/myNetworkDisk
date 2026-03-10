@@ -7,7 +7,7 @@
 #include <QHostAddress>
 #include "mainmenu.h"
 #include "ui_mainmenu.h"
-#include <iostream>
+#include "privatechat.h"
 
 TcpClient::TcpClient(QWidget *parent)
     : QWidget(parent)
@@ -268,6 +268,47 @@ void TcpClient::handleDeleteFriendRequest(PDU *pdu)
     QMessageBox::information(this, "delete friend", QString(username) + " delete you");
 }
 
+// 处理私聊好友的请求
+void TcpClient::handlePrivateChatRequest(PDU* pdu)
+{
+    char myUsername[32];
+    char username[32];
+    memcpy(username, pdu->caData, 32);     // 这是收到私聊请求的客户端，所以名字要反过来读取，先读username
+    memcpy(myUsername, pdu->caData + 32, 32);
+
+    QString msg = QString::fromUtf8(pdu->caMsg);         // UTF-8
+
+    // 如果已经和改用户打开过私聊窗口了，就直接在之前的窗口追加显示
+    if (mainMenu::getInstance().m_privateChatMap.find(username) != mainMenu::getInstance().m_privateChatMap.end())
+    {
+        mainMenu::getInstance().m_privateChatMap[username]->setRecordTextEdit(msg);
+        return;
+    }
+    // 第一次收到私聊请求就要创建新窗口弹出
+    privateChat* newChat = new privateChat(myUsername, username);
+    newChat->setAttribute(Qt::WA_DeleteOnClose);       // 设置成窗口关闭时自动销毁对象，从而触发destroyed信号
+    mainMenu::getInstance().m_privateChatMap.insert(username, newChat);
+    newChat->show();
+    newChat->setRecordTextEdit(msg);
+
+    // 如果关闭窗口就销毁对象，并且从map里面删除
+    connect(newChat, &privateChat::destroyed, this, [username](){
+//        QMap<QString, privateChat*>::iterator it = m_privateChatMap.find(username);   // 找到是哪个窗口
+//        delete it.value();            // 销毁对象，所以槽函数这里也不需要自己delete对象了
+//        it.value() = nullptr;
+        mainMenu::getInstance().m_privateChatMap.remove(username);   // 从map里面删除，直接利用key删除，不需要迭代器获取value去delete了
+    });
+}
+
+// 处理私聊好友的回复
+void TcpClient::handlePrivateChatRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, FRIEND_NOT_ONLINE) == 0)   // 好友不在线发送失败
+    {
+        QMessageBox::information(this, "private chat", FRIEND_NOT_ONLINE);
+    }
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -326,6 +367,14 @@ void TcpClient::recvMsg()
         handleDeleteFriendRequest(pdu);
         break;
 
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_REQUEST):    // 处理收到好友私聊的请求
+        handlePrivateChatRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_RESPOND):    // 处理收到好友私聊的回复
+        handlePrivateChatRespond(pdu);
+        break;
+
     }
     free(pdu);
     pdu = nullptr;
@@ -334,13 +383,5 @@ void TcpClient::recvMsg()
 // 发送登录请求给服务器
 void TcpClient::on_loginPushButtone_clicked()
 {
-    QString username = ui->usernameLineEdit->text();
-    QString password = ui->passwordLineEdit->text();
-    PDU* pdu = makePDU(0);
-    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_REQUEST);
-    strncpy(pdu->caData, username.toStdString().c_str(), 32);
-    strncpy(pdu->caData + 32, password.toStdString().c_str(), 32);
-    m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
-    free(pdu);
-    pdu = nullptr;
+
 }

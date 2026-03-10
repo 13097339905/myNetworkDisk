@@ -8,7 +8,7 @@ MyTcpSocket::MyTcpSocket()
     connect(this, &MyTcpSocket::readyRead, this, &MyTcpSocket::recvMsg);
 
     connect(this, &MyTcpSocket::disconnected, this, [this](){
-        OperateDB::getInstance().updateOnline(m_username);    // 改变在线状态
+        OperateDB::getInstance().updateOnline(m_username);       // socket断开连接了，改变在线状态，发出退出登录的信号，服务器删除掉之前连接存的socket
         emit logout(this);
     });
 }
@@ -206,6 +206,30 @@ void MyTcpSocket::handleDeleteFriend(PDU* pdu)
 
 }
 
+// 处理私聊请求
+void MyTcpSocket::handlePrivateChat(PDU* pdu)
+{
+    // 将私聊请求和消息转发给私聊的客户端
+    char myUsername[32];   // 请求方的用户名
+    char username[32];     // 私聊对象的用户名
+    memcpy(myUsername, pdu->caData, 32);
+    memcpy(username, pdu->caData + 32, 32);
+
+    PDU* privateChatPDU = makePDU(0);     // 回复给请求方的PDU
+    privateChatPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_RESPOND);
+    if (OperateDB::getInstance().searchUser(username) == USER_NOT_ONLINE)   // 判断要私聊的对象不在线
+    {
+        strcmp(privateChatPDU->caData, FRIEND_NOT_ONLINE);      // 设置私聊的好友不在线的消息
+    }
+    else     // 在线的话就把消息转发给要私聊的
+    {
+        MyTcpServer::getInstance().forwardPDU(pdu, username);
+    }
+    this->write((char*)privateChatPDU, privateChatPDU->uiPDULen);   // 发送给请求方回应
+    free(privateChatPDU);
+    privateChatPDU = nullptr;
+}
+
 void MyTcpSocket::recvMsg()
 {
 //    qDebug() << this->bytesAvailable();
@@ -253,9 +277,14 @@ void MyTcpSocket::recvMsg()
         handleSelectFriend();
         break;
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST):
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST):     // 删除好友请求
         handleDeleteFriend(pdu);
         break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_REQUEST):      // 私聊请求
+        handlePrivateChat(pdu);
+        break;
+
 
 
     default:
