@@ -60,6 +60,8 @@ private slots:
 
     void on_sendPushButton_clicked();
 
+    void on_newFolderPushButton_clicked();
+
 private:
     Ui::mainMenu *ui;
 

@@ -4,6 +4,7 @@
 #include <QList>
 #include "mytcpsocket.h"
 
+
 // MyTcpServer类继承QTcpServer，并且MyTcpServer使用单例模式
 // 服务器应该是全局唯一的，整个应用程序只需要一个服务器实例来监听连接，所以需要使用单例模式
 class MyTcpServer : public QTcpServer

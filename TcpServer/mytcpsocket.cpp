@@ -2,6 +2,7 @@
 #include <QDebug>
 #include "operatedb.h"
 #include "mytcpserver.h"
+#include <QDir>      // 用来操作文件目录的
 
 MyTcpSocket::MyTcpSocket()
 {
@@ -31,6 +32,10 @@ void MyTcpSocket::handleRegisterRequest(PDU* pdu)
     if (OperateDB::getInstance().insertUserInfo(username, password))   // 插入成功
     {
         strcpy(respondPdu->caData, REGISTER_SUCCESSED);             // 向客户端发送成功的消息
+        // 注册成功后为，利用改用户的username专门创建一个文件夹，用来存储该用户的东西
+        QDir dir;
+        if (dir.mkdir(ROOT_PATH + QString("/%1").arg(username)))
+            qDebug() << "create file folder success:" + QString(ROOT_PATH) + QString("/%1").arg(username);
     }
     else
     {
@@ -48,19 +53,28 @@ void MyTcpSocket::handleLoginRequest(PDU* pdu)
     char password[32];
     strncpy(username, pdu->caData, 32);
     strncpy(password, pdu->caData + 32, 32);
-    PDU* loginPDU = makePDU(0);
-    loginPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND);
 
-    if (OperateDB::getInstance().selectUserInfo(username, password))
+    PDU* loginPDU = nullptr;    // 先声明，因为不知道登录是否成功，不知道要make一个多大的PDU
+
+    if (OperateDB::getInstance().selectUserInfo(username, password))    // 登录成功
     {
-        OperateDB::getInstance().updateOnline(username);
+        // 登录成功后将该用户的目录发送给用户
+        QString path = ROOT_PATH + QString("/%1").arg(username);
+        QByteArray ba = path.toUtf8();
+
+        loginPDU = makePDU(ba.size());                     // 根据消息大小开辟PDU的大小
+        memcpy(loginPDU->caMsg, ba.data(), ba.size());     // 设置目录消息
+        OperateDB::getInstance().updateOnline(username);   // 登录成功后将用户设置为在线
         strcpy(loginPDU->caData, LOGIN_SUCCESSED);
         m_username = username;       // 保存当前登录的用户名到socket
     }
-    else
+    else    // 登录失败
     {
+        loginPDU = makePDU(0);
         strcpy(loginPDU->caData, LOGIN_FAILED);
     }
+    loginPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND);
+
     this->write((char*)loginPDU, loginPDU->uiPDULen);
     free(loginPDU);
     loginPDU = nullptr;
@@ -171,7 +185,7 @@ void MyTcpSocket::handleRefuseRequest(PDU* pdu)
 }
 
 // 处理查询当前用户所有好友信息
-void MyTcpSocket::handleSelectFriend()
+void MyTcpSocket::handleSelectFriendRequest()
 {
     QStringList res = OperateDB::getInstance().selectFriend(m_username); // 获取数据库的查询结果
     PDU* selectFriendPDU = makePDU(res.size() * 32);                     // 新建PDU用来传输查询结果
@@ -186,7 +200,7 @@ void MyTcpSocket::handleSelectFriend()
 }
 
 // 处理删除好友的消息
-void MyTcpSocket::handleDeleteFriend(PDU* pdu)
+void MyTcpSocket::handleDeleteFriendRequest(PDU* pdu)
 {
     char username[32];
     memcpy(username, pdu->caData, 32);     // 获取要删除的名字
@@ -207,7 +221,7 @@ void MyTcpSocket::handleDeleteFriend(PDU* pdu)
 }
 
 // 处理私聊请求
-void MyTcpSocket::handlePrivateChat(PDU* pdu)
+void MyTcpSocket::handlePrivateChatRequest(PDU* pdu)
 {
     // 将私聊请求和消息转发给私聊的客户端
     char myUsername[32];   // 请求方的用户名
@@ -231,7 +245,7 @@ void MyTcpSocket::handlePrivateChat(PDU* pdu)
 }
 
 // 处理群发请求
-void MyTcpSocket::handleGroupChat(PDU* pdu)
+void MyTcpSocket::handleGroupChatRequest(PDU* pdu)
 {
     // 只需要将pdu转发给在线的好友用户就可以了
     char username[32];
@@ -246,6 +260,36 @@ void MyTcpSocket::handleGroupChat(PDU* pdu)
         free(newPdu);
         newPdu = nullptr;
     }
+}
+
+// 处理创建文件夹请求
+void MyTcpSocket::handleCreateFolderRequest(PDU* pdu)
+{
+    char folderName[64];
+    char myCurPath[pdu->uiMsgLen];
+    memcpy(folderName, pdu->caData, 64);
+    memcpy(myCurPath, pdu->caMsg, pdu->uiMsgLen);
+
+    QDir dir;
+    PDU* createFolderPDU = makePDU(0);
+    createFolderPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_RESPOND);
+
+    QString newPath = QString(myCurPath) + "/" + QString(folderName);
+    qDebug() << myCurPath;
+    qDebug() << folderName;
+    qDebug() << newPath;
+    if (dir.exists(newPath))    // 要创建的新文件夹的这个路径已经存在了，即已经有这个文件夹了，创建失败
+    {
+        strcpy(createFolderPDU->caData, CREATE_FOLDER_EXIST);
+    }
+    else
+    {
+        dir.mkdir(newPath);
+        strcpy(createFolderPDU->caData, CREATE_FOLDER_SUCCESS);
+    }
+    this->write((char*)createFolderPDU, createFolderPDU->uiPDULen);
+    free(createFolderPDU);
+    createFolderPDU = nullptr;
 }
 
 void MyTcpSocket::recvMsg()
@@ -292,19 +336,23 @@ void MyTcpSocket::recvMsg()
         break;
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_REQUEST):     // 查询当前用户所有好友
-        handleSelectFriend();
+        handleSelectFriendRequest();
         break;
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST):     // 删除好友请求
-        handleDeleteFriend(pdu);
+        handleDeleteFriendRequest(pdu);
         break;
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_REQUEST):      // 私聊请求
-        handlePrivateChat(pdu);
+        handlePrivateChatRequest(pdu);
         break;
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_GROUP_CHAT_REQUEST):      // 群发请求
-        handleGroupChat(pdu);
+        handleGroupChatRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_REQUEST):      // 创建文件夹请求
+        handleCreateFolderRequest(pdu);
         break;
 
     default:

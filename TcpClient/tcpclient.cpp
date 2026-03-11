@@ -124,6 +124,11 @@ void TcpClient::handleLoginRespond(PDU* pdu)
 {
     if (strcmp(pdu->caData, LOGIN_SUCCESSED) == 0)    // 收到服务器传来的登录成功的消息
     {
+        // 登录成功后读取当前所在的路径
+        char curPath[pdu->uiMsgLen];
+        memcpy(curPath, pdu->caMsg, pdu->uiMsgLen);
+        m_myCurPath = curPath;
+
         QMessageBox::information(this, "login info", LOGIN_SUCCESSED);
         mainMenu::getInstance().setMyUsername(ui->usernameLineEdit->text());    // 登录时记下用户名到mainMenu
         mainMenu::getInstance().show();       // 登陆成功，显示主菜单
@@ -331,6 +336,19 @@ void TcpClient::handleGroupChatRequest(PDU* pdu)
     mainMenu::getInstance().setGroup(username, msg);
 }
 
+// 处理创建文件夹的回复
+void TcpClient::handleCreateFolderRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, CREATE_FOLDER_SUCCESS) == 0)   // 创建文件夹成功
+    {
+        QMessageBox::information(this, "create folder", CREATE_FOLDER_SUCCESS);
+    }
+    else
+    {
+        QMessageBox::information(this, "create folder", CREATE_FOLDER_EXIST);
+    }
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -401,6 +419,10 @@ void TcpClient::recvMsg()
         handleGroupChatRequest(pdu);
         break;
 
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_RESPOND):    // 处理收到创建文件夹的回复
+        handleCreateFolderRespond(pdu);
+        break;
+
     }
     free(pdu);
     pdu = nullptr;
@@ -418,4 +440,9 @@ void TcpClient::on_loginPushButtone_clicked()
     m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
     free(pdu);
     pdu = nullptr;
+}
+
+QString TcpClient::getMyCurPath() const
+{
+    return m_myCurPath;
 }

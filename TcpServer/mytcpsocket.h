@@ -2,6 +2,9 @@
 #define MYTCPSOCKET_H
 #include <QTcpSocket>
 #include "protocol.h"
+#include <QDir>     // 专门用来操作文件目录的
+
+#define ROOT_PATH   "F:/C++/myNetworkDisk_file"
 
 class MyTcpSocket : public QTcpSocket
 {
@@ -43,16 +46,19 @@ private:
     void handleRefuseRequest(PDU* pdu);
 
     // 处理查询当前用户所有好友信息
-    void handleSelectFriend();
+    void handleSelectFriendRequest();
 
     // 处理删除好友的消息
-    void handleDeleteFriend(PDU* pdu);
+    void handleDeleteFriendRequest(PDU* pdu);
 
     // 处理私聊请求
-    void handlePrivateChat(PDU* pdu);
+    void handlePrivateChatRequest(PDU* pdu);
 
     // 处理群发请求
-    void handleGroupChat(PDU* pdu);
+    void handleGroupChatRequest(PDU* pdu);
+
+    // 处理创建文件夹请求
+    void handleCreateFolderRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

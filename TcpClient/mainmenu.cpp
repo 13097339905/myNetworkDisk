@@ -87,11 +87,22 @@ void mainMenu::on_showOnlinePushButton_clicked()
 // 查找用户槽函数
 void mainMenu::on_findPushButton_clicked()
 {
-    // 利用对话框获取用户输入的用户名，将用户名发送给服务器让服务器查询，然后再返回查询结果
-    bool isSearch;
-    QString username = QInputDialog::getText(this, "search user", "input username", QLineEdit::Normal, "", &isSearch);   // 初始化对话框，获取用户输入到对话框的用户名
-    if (!isSearch)
+//    // 利用对话框获取用户输入的用户名，将用户名发送给服务器让服务器查询，然后再返回查询结果
+//    bool isSearch;
+//    QString username = QInputDialog::getText(this, "search user", "input username", QLineEdit::Normal, "", &isSearch);   // 初始化对话框，获取用户输入到对话框的用户名
+//    if (!isSearch)
+//        return;
+
+    // 使用对象方式创建对话框，避免 setGeometry 警告
+    QString username;
+    QInputDialog inputDialog(this);
+    inputDialog.setWindowTitle("search user");
+    inputDialog.setLabelText("input username");
+    inputDialog.setInputMode(QInputDialog::TextInput);
+    inputDialog.adjustSize();     // 自适应调整大小，不出警告
+    if (inputDialog.exec() != QDialog::Accepted) // 用户点击取消
         return;
+    username = inputDialog.textValue();
 
     PDU* pdu = makePDU(0);
     pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SEARCH_USER_REQUEST);   // 设置消息类型
@@ -207,6 +218,43 @@ void mainMenu::on_sendPushButton_clicked()
 
     ui->messageTextEdit->append(m_myUsername + ":  " + qsMsg);  // 将发送的消息在聊天框
 
+    free(pdu);
+    pdu = nullptr;
+}
+
+// 点击创建文件夹触发的槽函数
+void mainMenu::on_newFolderPushButton_clicked()
+{
+//    bool isInput;    // 这样用会有警告
+//    // 初始化对话框，获取用户输入到对话框的文件夹名字
+//    QString folderName = QInputDialog::getText(this, "create folder", "input folder name", QLineEdit::Normal, "", &isInput);
+//    if (!isInput)    // 用户点击取消就取消
+//        return;
+//    if (folderName.isEmpty())
+//    {
+//        QMessageBox::information(this, "create folder", "folder name can't is empty");
+//        return;
+//    }
+
+    // 使用对象方式创建对话框，避免 setGeometry 警告
+    QString folderName;
+    QInputDialog inputDialog(this);
+    inputDialog.setWindowTitle("create folder");
+    inputDialog.setLabelText("input folder name");
+    inputDialog.setInputMode(QInputDialog::TextInput);
+    inputDialog.adjustSize();     // 自适应调整大小，不出警告
+    if (inputDialog.exec() != QDialog::Accepted) // 用户点击取消
+        return;
+    folderName = inputDialog.textValue();
+
+    // 将当前路径和要创建的新文件夹名字发送给服务器
+    QString myCurPath = TcpClient::getInstance().getMyCurPath();
+    QByteArray ba = myCurPath.toUtf8();
+    PDU* pdu = makePDU(ba.size());
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_REQUEST);
+    memcpy(pdu->caData, folderName.toStdString().c_str(), 64);
+    memcpy(pdu->caMsg, ba.data(), ba.size());
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);
     pdu = nullptr;
 }
