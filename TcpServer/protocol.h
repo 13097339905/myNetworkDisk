@@ -15,7 +15,6 @@ typedef unsigned int uint;
 #define CREATE_FOLDER_EXIST     "folder already exist, create failed"
 #define CREATE_FOLDER_SUCCESS   "folder create success"
 
-
 enum class ENUM_MSG_TYPE
 {
     ENUM_MSG_TYPE_MIN = 0,             // 最小值，用于边界检查
@@ -51,7 +50,20 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_CREATE_FOLDER_REQUEST,    // 创建新文件夹请求
     ENUM_MSG_TYPE_CREATE_FOLDER_RESPOND,    // 创建新文件夹回复
 
+    ENUM_MSG_TYPE_FLUSH_FILE_REQUEST,    // 刷新文件请求
+    ENUM_MSG_TYPE_FLUSH_FILE_RESPOND,    // 刷新文件回复
+
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
+};
+
+
+
+// 文件信息
+struct FileInfo
+{
+    char fileName[32];    // 文件或文件夹名字
+    bool fileType;        // 文件类型（是不是文件夹还是常规文件）
+    long long fileSize;   // 文件大小
 };
 
 

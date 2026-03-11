@@ -349,6 +349,20 @@ void TcpClient::handleCreateFolderRespond(PDU* pdu)
     }
 }
 
+// 处理刷新文件的请求
+void TcpClient::handleFlushFileRespond(PDU* pdu)
+{
+    // 1.将文件信息提取出来
+    int fileCount = pdu->uiMsgLen / sizeof(FileInfo);
+    for (int i = 0; i < fileCount; i++)
+    {
+        FileInfo* f = (FileInfo*)(pdu->caMsg) + i;
+
+        // 2.将文件信息显示到ui上面
+        mainMenu::getInstance().setFileInfo(f->fileType, f->fileName, f->fileSize);
+    }
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -421,6 +435,10 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_RESPOND):    // 处理收到创建文件夹的回复
         handleCreateFolderRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_RESPOND):    // 处理收到刷新文件的回复
+        handleFlushFileRespond(pdu);
         break;
 
     }

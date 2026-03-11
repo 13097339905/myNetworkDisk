@@ -41,6 +41,9 @@ public:
 
     void setGroup(QString username, QString msg);
 
+    // 设置文件信息
+    void setFileInfo(bool isDir, QString fileName, long long fileSize);
+
 private slots:
     // 显示所有在线用户按钮的槽函数
     void on_showOnlinePushButton_clicked();
@@ -61,6 +64,8 @@ private slots:
     void on_sendPushButton_clicked();
 
     void on_newFolderPushButton_clicked();
+
+    void on_flushFilePushButton_clicked();
 
 private:
     Ui::mainMenu *ui;

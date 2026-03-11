@@ -292,6 +292,38 @@ void MyTcpSocket::handleCreateFolderRequest(PDU* pdu)
     createFolderPDU = nullptr;
 }
 
+// 处理刷新文件请求
+void MyTcpSocket::handleFlushFileRequest(PDU* pdu)
+{
+    // 获取当前路径下包含的文件和文件夹，返回给客户端显示
+    char curPath[pdu->uiMsgLen];
+    memcpy(curPath, pdu->caMsg, pdu->uiMsgLen);    // 获取客户端发来的路径
+
+    QDir dir;
+    dir.setPath(curPath);     // 设置为当前目录
+
+    // 获取当前目录下所有文件信息除了.和..    第二个参数表示排序规则，文件夹优先
+    QFileInfoList fileInfoList = dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot, QDir::DirsFirst);
+
+    int fileCount = fileInfoList.size();
+
+    PDU* flushFilePDU = makePDU(fileCount * sizeof(FileInfo));
+    flushFilePDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_RESPOND);
+    for (int i = 0; i < fileCount; i++)      // 将文件信息包装到PDU里面发送给客户端
+    {
+        // qDebug() << fileInfoList[i].isDir() << fileInfoList[i].fileName() << fileInfoList[i].size();
+        FileInfo* f = (FileInfo*)(flushFilePDU->caMsg) + i;
+        strncpy(f->fileName, fileInfoList[i].fileName().toStdString().c_str(), 32);
+        f->fileType = fileInfoList[i].isDir();
+        f->fileSize = fileInfoList[i].size();
+
+    }
+    this->write((char*)flushFilePDU, flushFilePDU->uiPDULen);
+    free(flushFilePDU);
+    flushFilePDU = nullptr;
+}
+
+
 void MyTcpSocket::recvMsg()
 {
 //    qDebug() << this->bytesAvailable();
@@ -353,6 +385,10 @@ void MyTcpSocket::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_REQUEST):      // 创建文件夹请求
         handleCreateFolderRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_REQUEST):      // 刷新文件请求
+        handleFlushFileRequest(pdu);
         break;
 
     default:

@@ -59,6 +59,9 @@ private:
 
     // 处理创建文件夹请求
     void handleCreateFolderRequest(PDU* pdu);
+
+    // 处理刷新文件请求
+    void handleFlushFileRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

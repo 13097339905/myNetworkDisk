@@ -50,8 +50,19 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_CREATE_FOLDER_REQUEST,    // 创建新文件夹请求
     ENUM_MSG_TYPE_CREATE_FOLDER_RESPOND,    // 创建新文件夹回复
 
+    ENUM_MSG_TYPE_FLUSH_FILE_REQUEST,    // 刷新文件请求
+    ENUM_MSG_TYPE_FLUSH_FILE_RESPOND,    // 刷新文件回复
+
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
+
+struct FileInfo
+{
+    char fileName[32];
+    bool fileType;
+    long long fileSize;
+};
+
 
 struct PDU
 {

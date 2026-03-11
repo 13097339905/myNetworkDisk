@@ -28,6 +28,11 @@ mainMenu::mainMenu(QWidget *parent) :
         on_showOnlinePushButton_clicked();
     });
 
+    // 延迟发送第三个请求，避免冲突，不然会导致粘包，丢失第二个请求
+    QTimer::singleShot(200, this, [this]() {
+        on_flushFilePushButton_clicked();
+    });
+
 }
 
 mainMenu::~mainMenu()
@@ -68,6 +73,22 @@ void mainMenu::setFriend(QString s)
 void mainMenu::setGroup(QString username, QString msg)
 {
     ui->messageTextEdit->append(username + ":  " + msg);
+}
+
+void mainMenu::setFileInfo(bool isDir, QString fileName, long long fileSize)
+{
+    QListWidgetItem* item = new QListWidgetItem;
+    if (isDir)
+    {
+        item->setIcon(QIcon(QPixmap(":/icons/folder.webp")));
+    }
+    else
+    {
+        item->setIcon(QIcon(QPixmap(":/icons/file.webp")));
+    }
+    fileSize = fileSize % 1024 == 0 ? fileSize / 1024 : fileSize / 1024 + 1;
+    item->setText(QString("%1\t%2KB").arg(fileName).arg(fileSize));
+    ui->fileListWidget->addItem(item);
 }
 
 
@@ -257,4 +278,22 @@ void mainMenu::on_newFolderPushButton_clicked()
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);
     pdu = nullptr;
+}
+
+// 点击刷新文件触发的槽函数
+void mainMenu::on_flushFilePushButton_clicked()
+{
+    // 将路径发送给服务器，服务器返回当前路径下包含的文件和文件夹
+    QString myCurPath = TcpClient::getInstance().getMyCurPath();
+    QByteArray ba = myCurPath.toUtf8();
+
+    PDU* pdu = makePDU(ba.size());
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_REQUEST);
+    memcpy(pdu->caMsg, ba.data(), ba.size());
+
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
+
+    ui->fileListWidget->clear();
 }

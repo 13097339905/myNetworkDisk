@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/file.webp</file>
+        <file>icons/folder.webp</file>
+    </qresource>
+</RCC>
