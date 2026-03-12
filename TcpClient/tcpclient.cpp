@@ -363,6 +363,19 @@ void TcpClient::handleFlushFileRespond(PDU* pdu)
     }
 }
 
+// 处理收到删除文件的回复
+void TcpClient::handleDeleteFileRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, DELETE_FAILED) ==  0)     // 删除文件失败
+    {
+        QMessageBox::information(this, "delete file", DELETE_FAILED);
+    }
+    else if (strcmp(pdu->caData, DELETE_SUCCESSED)  == 0)   // 删除文件成功
+    {
+        QMessageBox::information(this, "delete file", DELETE_SUCCESSED);
+    }
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -439,6 +452,10 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_RESPOND):    // 处理收到刷新文件的回复
         handleFlushFileRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_RESPOND):    // 处理收到删除文件的回复
+        handleDeleteFileRespond(pdu);
         break;
 
     }

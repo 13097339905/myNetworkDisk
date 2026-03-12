@@ -284,6 +284,7 @@ void mainMenu::on_newFolderPushButton_clicked()
 void mainMenu::on_flushFilePushButton_clicked()
 {
     // 将路径发送给服务器，服务器返回当前路径下包含的文件和文件夹
+    ui->fileListWidget->clear();
     QString myCurPath = TcpClient::getInstance().getMyCurPath();
     QByteArray ba = myCurPath.toUtf8();
 
@@ -295,5 +296,35 @@ void mainMenu::on_flushFilePushButton_clicked()
     free(pdu);
     pdu = nullptr;
 
-    ui->fileListWidget->clear();
+}
+
+// 点击删除文件触发的槽函数
+void mainMenu::on_deleteFilePushButton_clicked()
+{
+    // 将路径发送给服务器，让服务器进行删除
+    QString myCurPath = TcpClient::getInstance().getMyCurPath();    // 获取当前路径
+    QListWidgetItem* item = ui->fileListWidget->currentItem();
+    if (item == nullptr)
+    {
+        QMessageBox::information(this, "delete file", "please select a file or folder");
+        return;
+    }
+    QString fileName = item->text().split('\t')[0];                 // 获取要删除的文件名
+    qDebug() << fileName;
+    myCurPath += "/";          // 拼接成新的路径
+    myCurPath += fileName;
+    QByteArray ba = myCurPath.toUtf8();
+
+    PDU* pdu = makePDU(ba.size() + 1);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_REQUEST);
+    memcpy(pdu->caMsg, ba.data(), ba.size());
+
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
+}
+
+void mainMenu::on_reNamePushButton_clicked()
+{
+
 }

@@ -62,6 +62,9 @@ private:
 
     // 处理刷新文件请求
     void handleFlushFileRequest(PDU* pdu);
+
+    // 处理删除文件的请求
+    void handleDeleteFileRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

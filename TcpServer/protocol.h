@@ -14,6 +14,8 @@ typedef unsigned int uint;
 #define FRIEND_NOT_ONLINE       "friend not online, please try to chat later"
 #define CREATE_FOLDER_EXIST     "folder already exist, create failed"
 #define CREATE_FOLDER_SUCCESS   "folder create success"
+#define DELETE_SUCCESSED        "delete success"
+#define DELETE_FAILED           "delete failed"
 
 enum class ENUM_MSG_TYPE
 {
@@ -52,6 +54,9 @@ enum class ENUM_MSG_TYPE
 
     ENUM_MSG_TYPE_FLUSH_FILE_REQUEST,    // 刷新文件请求
     ENUM_MSG_TYPE_FLUSH_FILE_RESPOND,    // 刷新文件回复
+
+    ENUM_MSG_TYPE_DELETE_FILE_REQUEST,    // 删除文件请求
+    ENUM_MSG_TYPE_DELETE_FILE_RESPOND,    // 删除文件回复
 
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };

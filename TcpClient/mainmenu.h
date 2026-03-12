@@ -67,6 +67,8 @@ private slots:
 
     void on_flushFilePushButton_clicked();
 
+    void on_deleteFilePushButton_clicked();
+
 private:
     Ui::mainMenu *ui;
 

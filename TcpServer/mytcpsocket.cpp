@@ -299,6 +299,8 @@ void MyTcpSocket::handleFlushFileRequest(PDU* pdu)
     char curPath[pdu->uiMsgLen];
     memcpy(curPath, pdu->caMsg, pdu->uiMsgLen);    // 获取客户端发来的路径
 
+    qDebug() << "flush" << curPath;
+
     QDir dir;
     dir.setPath(curPath);     // 设置为当前目录
 
@@ -321,6 +323,48 @@ void MyTcpSocket::handleFlushFileRequest(PDU* pdu)
     this->write((char*)flushFilePDU, flushFilePDU->uiPDULen);
     free(flushFilePDU);
     flushFilePDU = nullptr;
+}
+
+// 处理删除文件的请求
+void MyTcpSocket::handleDeleteFileRequest(PDU* pdu)
+{
+    char curPath[pdu->uiMsgLen];
+    qDebug() << pdu->uiMsgLen;
+    memcpy(curPath, pdu->caMsg, pdu->uiMsgLen);     // 获取当前路径
+
+    qDebug() << curPath;
+
+    QDir dir;
+    QFileInfo fileInfo(curPath);
+    dir.setPath(curPath);
+
+    PDU* deleteFilePDU = makePDU(0);
+    deleteFilePDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_RESPOND);
+    if (fileInfo.isDir())
+    {
+        if (dir.removeRecursively())
+        {
+            memcpy(deleteFilePDU->caData, DELETE_SUCCESSED, 64);
+        }
+        else
+        {
+            memcpy(deleteFilePDU->caData, DELETE_FAILED, 64);
+        }
+    }
+    else
+    {
+        if (dir.remove(curPath))
+        {
+            memcpy(deleteFilePDU->caData, DELETE_SUCCESSED, 64);
+        }
+        else
+        {
+            memcpy(deleteFilePDU->caData, DELETE_FAILED, 64);
+        }
+    }
+    this->write((char*)deleteFilePDU, deleteFilePDU->uiPDULen);
+    free(deleteFilePDU);
+    deleteFilePDU = nullptr;
 }
 
 
@@ -389,6 +433,10 @@ void MyTcpSocket::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_REQUEST):      // 刷新文件请求
         handleFlushFileRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_REQUEST):      // 删除文件请求
+        handleDeleteFileRequest(pdu);
         break;
 
     default:

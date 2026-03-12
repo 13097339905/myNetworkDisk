@@ -276,8 +276,8 @@
     <widget class="QPushButton" name="returnPushButton">
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>50</y>
+       <x>420</x>
+       <y>60</y>
        <width>93</width>
        <height>51</height>
       </rect>
@@ -289,8 +289,8 @@
     <widget class="QPushButton" name="newFolderPushButton">
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>130</y>
+       <x>420</x>
+       <y>150</y>
        <width>93</width>
        <height>51</height>
       </rect>
@@ -299,24 +299,11 @@
       <string>创建文件夹</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="deleteFolderButton">
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>210</y>
-       <width>93</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>删除文件夹</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="reNamePushButton">
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>290</y>
+       <x>560</x>
+       <y>240</y>
        <width>93</width>
        <height>51</height>
       </rect>
@@ -328,8 +315,8 @@
     <widget class="QPushButton" name="flushFilePushButton">
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>370</y>
+       <x>420</x>
+       <y>340</y>
        <width>93</width>
        <height>51</height>
       </rect>
@@ -341,8 +328,8 @@
     <widget class="QPushButton" name="uploadPushButton">
      <property name="geometry">
       <rect>
-       <x>550</x>
-       <y>90</y>
+       <x>560</x>
+       <y>60</y>
        <width>93</width>
        <height>51</height>
       </rect>
@@ -354,8 +341,8 @@
     <widget class="QPushButton" name="downloadPushButton">
      <property name="geometry">
       <rect>
-       <x>550</x>
-       <y>170</y>
+       <x>560</x>
+       <y>150</y>
        <width>93</width>
        <height>51</height>
       </rect>
@@ -367,8 +354,8 @@
     <widget class="QPushButton" name="deleteFilePushButton">
      <property name="geometry">
       <rect>
-       <x>550</x>
-       <y>250</y>
+       <x>420</x>
+       <y>240</y>
        <width>93</width>
        <height>51</height>
       </rect>
@@ -380,8 +367,8 @@
     <widget class="QPushButton" name="shareFilePushButton">
      <property name="geometry">
       <rect>
-       <x>550</x>
-       <y>330</y>
+       <x>560</x>
+       <y>340</y>
        <width>93</width>
        <height>51</height>
       </rect>
