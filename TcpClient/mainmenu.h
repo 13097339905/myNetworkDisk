@@ -5,6 +5,7 @@
 #include <QString>
 #include "privatechat.h"
 #include <QMap>
+#include <QListWidgetItem>
 
 namespace Ui {
 class mainMenu;
@@ -44,6 +45,9 @@ public:
     // 设置文件信息
     void setFileInfo(bool isDir, QString fileName, long long fileSize);
 
+    // 释放刷新的信号，去触发刷新的槽函数
+    void emitFlushFileSignal();
+
 private slots:
     // 显示所有在线用户按钮的槽函数
     void on_showOnlinePushButton_clicked();
@@ -70,6 +74,8 @@ private slots:
     void on_deleteFilePushButton_clicked();
 
     void on_reNamePushButton_clicked();
+
+    void on_fileListWidget_itemDoubleClicked(QListWidgetItem *item);
 
 private:
     Ui::mainMenu *ui;

@@ -68,6 +68,9 @@ private:
 
     // 处理重命名文件的请求
     void handleRenameFileRequest(PDU* pdu);
+
+    // 处理进入文件夹的请求
+    void handleEnterFolderRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

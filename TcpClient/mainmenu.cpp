@@ -91,6 +91,11 @@ void mainMenu::setFileInfo(bool isDir, QString fileName, long long fileSize)
     ui->fileListWidget->addItem(item);
 }
 
+void mainMenu::emitFlushFileSignal()
+{
+    emit ui->flushFilePushButton->click();
+}
+
 
 
 // 显示所有在线用户按钮的槽函数
@@ -288,9 +293,12 @@ void mainMenu::on_flushFilePushButton_clicked()
     QString myCurPath = TcpClient::getInstance().getMyCurPath();
     QByteArray ba = myCurPath.toUtf8();
 
-    PDU* pdu = makePDU(ba.size());
+
+    PDU* pdu = makePDU(ba.size() + 1);    // 要多开一个字节用来存放\0
     pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_REQUEST);
     memcpy(pdu->caMsg, ba.data(), ba.size());
+    pdu->caMsg[ba.size()] = '\0';         // 对于字符串的处理一定要在结尾加上\0，不然会出很多莫名奇妙的问题乱码
+    qDebug() << "flush " << pdu->caMsg;
 
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);
@@ -361,6 +369,26 @@ void mainMenu::on_reNamePushButton_clicked()
     memcpy(pdu->caData, oldName.toStdString().c_str(), 32);
     memcpy(pdu->caData + 32, newName.toStdString().c_str(), 32);
     memcpy(pdu->caMsg, myCurPath.toStdString().c_str(), pdu->uiMsgLen);
+
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
+}
+
+// 双击文件列表中的某一个后触发的槽函数
+void mainMenu::on_fileListWidget_itemDoubleClicked(QListWidgetItem *item)
+{
+    // 将当前路径拼接文件名后发送给服务器
+    QString myCurPath = TcpClient::getInstance().getMyCurPath();    // 获取当前路径
+
+    QString fileName = item->text().split('\t')[0];                 // 获取要进入的文件名
+    myCurPath += "/";          // 拼接成新的路径
+    myCurPath += fileName;
+    QByteArray ba = myCurPath.toUtf8();
+
+    PDU* pdu = makePDU(ba.size() + 1);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ENTER_FOLDER_REQUEST);
+    memcpy(pdu->caMsg, ba.data(), ba.size());
 
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);

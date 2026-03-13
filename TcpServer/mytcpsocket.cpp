@@ -400,6 +400,29 @@ void MyTcpSocket::handleRenameFileRequest(PDU* pdu)
     renameFilePDU = nullptr;
 }
 
+// 处理进入文件夹的请求
+void MyTcpSocket::handleEnterFolderRequest(PDU* pdu)
+{
+    // 服务器判断是不是文件夹，不是文件夹就不做回应, 是文件夹就将新路径发送给客户端，让客户端再调用刷新的槽函数，
+    char curPath[pdu->uiMsgLen];
+    memcpy(curPath, pdu->caMsg, pdu->uiMsgLen);
+
+    QFileInfo fileInfo;
+    fileInfo.setFile(curPath);
+    qDebug() << curPath;
+    if (!fileInfo.isDir())         // 当前路径不是文件夹
+    {
+        return;
+    }
+    PDU* EnterFolderPDU = makePDU(pdu->uiMsgLen);
+    EnterFolderPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ENTER_FOLDER_RESPOND);
+    memcpy(EnterFolderPDU->caMsg, curPath, pdu->uiMsgLen);
+
+    this->write((char*)EnterFolderPDU, EnterFolderPDU->uiPDULen);
+    free(EnterFolderPDU);
+    EnterFolderPDU = nullptr;
+}
+
 
 void MyTcpSocket::recvMsg()
 {
@@ -474,6 +497,10 @@ void MyTcpSocket::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RENAME_FILE_REQUEST):      // 重命名文件请求
         handleRenameFileRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ENTER_FOLDER_REQUEST):      // 进入文件夹请求
+        handleEnterFolderRequest(pdu);
         break;
 
     default:

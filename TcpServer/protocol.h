@@ -62,6 +62,9 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_RENAME_FILE_REQUEST,    // 重命名文件请求
     ENUM_MSG_TYPE_RENAME_FILE_RESPOND,    // 重命名文件回复
 
+    ENUM_MSG_TYPE_ENTER_FOLDER_REQUEST,    // 进入文件夹请求
+    ENUM_MSG_TYPE_ENTER_FOLDER_RESPOND,    // 进入文件夹回复
+
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
 
