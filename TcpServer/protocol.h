@@ -16,6 +16,7 @@ typedef unsigned int uint;
 #define CREATE_FOLDER_SUCCESS   "folder create success"
 #define DELETE_SUCCESSED        "delete success"
 #define DELETE_FAILED           "delete failed"
+#define PATH_IS_NOT_CORRECT     "old path not eixst or new path already exist"
 
 enum class ENUM_MSG_TYPE
 {
@@ -58,6 +59,9 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_DELETE_FILE_REQUEST,    // 删除文件请求
     ENUM_MSG_TYPE_DELETE_FILE_RESPOND,    // 删除文件回复
 
+    ENUM_MSG_TYPE_RENAME_FILE_REQUEST,    // 重命名文件请求
+    ENUM_MSG_TYPE_RENAME_FILE_RESPOND,    // 重命名文件回复
+
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
 
@@ -66,7 +70,7 @@ enum class ENUM_MSG_TYPE
 // 文件信息
 struct FileInfo
 {
-    char fileName[32];    // 文件或文件夹名字
+    char fileName[64];    // 文件或文件夹名字
     bool fileType;        // 文件类型（是不是文件夹还是常规文件）
     long long fileSize;   // 文件大小
 };

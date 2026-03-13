@@ -324,7 +324,45 @@ void mainMenu::on_deleteFilePushButton_clicked()
     pdu = nullptr;
 }
 
+// 点击重命名触发的槽函数
 void mainMenu::on_reNamePushButton_clicked()
 {
+    // 将旧名字（旧路径）和新路径发送给服务器
+    QString myCurPath = TcpClient::getInstance().getMyCurPath();    // 获取当前路径
+    QListWidgetItem* item = ui->fileListWidget->currentItem();
+    if (item == nullptr)
+    {
+        QMessageBox::information(this, "rename", "please select a file or folder");
+        return;
+    }
+    QString oldName = item->text().split('\t')[0];      // 获取要重命名的文件名
 
+    // 使用对象方式创建对话框，避免 setGeometry 警告
+    QInputDialog inputDialog(this);
+    inputDialog.setWindowTitle("rename");
+    inputDialog.setLabelText("input new name");
+    inputDialog.setInputMode(QInputDialog::TextInput);
+    inputDialog.adjustSize();     // 自适应调整大小，不出警告
+    if (inputDialog.exec() != QDialog::Accepted) // 用户点击取消
+        return;
+    QString newName = inputDialog.textValue();    // 获取新的文件的名字
+    if (newName.toUtf8().size() > 32)             // 名字不能超过32个字节
+    {
+        QMessageBox::information(this, "rename", "the new name is to long");
+        return;
+    }
+
+//    qDebug() << myCurPath;
+//    qDebug() << oldName;
+//    qDebug() << newName;
+
+    PDU* pdu = makePDU(myCurPath.toUtf8().size());        // 将当前路径和旧名字和新名字发送给服务器
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RENAME_FILE_REQUEST);
+    memcpy(pdu->caData, oldName.toStdString().c_str(), 32);
+    memcpy(pdu->caData + 32, newName.toStdString().c_str(), 32);
+    memcpy(pdu->caMsg, myCurPath.toStdString().c_str(), pdu->uiMsgLen);
+
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
 }

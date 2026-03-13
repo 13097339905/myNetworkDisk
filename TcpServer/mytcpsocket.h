@@ -65,6 +65,9 @@ private:
 
     // 处理删除文件的请求
     void handleDeleteFileRequest(PDU* pdu);
+
+    // 处理重命名文件的请求
+    void handleRenameFileRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

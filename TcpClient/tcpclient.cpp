@@ -376,6 +376,19 @@ void TcpClient::handleDeleteFileRespond(PDU* pdu)
     }
 }
 
+// 处理重命名文件的回复
+void TcpClient::handleRenameFileRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, PATH_IS_NOT_CORRECT) == 0)    // 重命名文件失败
+    {
+        QMessageBox::information(this, "rename", PATH_IS_NOT_CORRECT);
+    }
+    else
+    {
+        QMessageBox::information(this, "rename", "rename successed");
+    }
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -456,6 +469,10 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_RESPOND):    // 处理收到删除文件的回复
         handleDeleteFileRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RENAME_FILE_RESPOND):    // 处理收到重命名文件的回复
+        handleRenameFileRespond(pdu);
         break;
 
     }

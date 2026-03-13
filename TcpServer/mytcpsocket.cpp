@@ -315,7 +315,7 @@ void MyTcpSocket::handleFlushFileRequest(PDU* pdu)
     {
         // qDebug() << fileInfoList[i].isDir() << fileInfoList[i].fileName() << fileInfoList[i].size();
         FileInfo* f = (FileInfo*)(flushFilePDU->caMsg) + i;
-        strncpy(f->fileName, fileInfoList[i].fileName().toStdString().c_str(), 32);
+        strncpy(f->fileName, fileInfoList[i].fileName().toStdString().c_str(), 64);
         f->fileType = fileInfoList[i].isDir();
         f->fileSize = fileInfoList[i].size();
 
@@ -329,7 +329,6 @@ void MyTcpSocket::handleFlushFileRequest(PDU* pdu)
 void MyTcpSocket::handleDeleteFileRequest(PDU* pdu)
 {
     char curPath[pdu->uiMsgLen];
-    qDebug() << pdu->uiMsgLen;
     memcpy(curPath, pdu->caMsg, pdu->uiMsgLen);     // 获取当前路径
 
     qDebug() << curPath;
@@ -365,6 +364,40 @@ void MyTcpSocket::handleDeleteFileRequest(PDU* pdu)
     this->write((char*)deleteFilePDU, deleteFilePDU->uiPDULen);
     free(deleteFilePDU);
     deleteFilePDU = nullptr;
+}
+
+// 处理重命名文件的请求
+void MyTcpSocket::handleRenameFileRequest(PDU* pdu)
+{
+    char curPath[pdu->uiMsgLen];
+    char oldName[32];
+    char newName[32];
+
+    memcpy(curPath, pdu->caMsg, pdu->uiMsgLen);
+    memcpy(oldName, pdu->caData, 32);
+    memcpy(newName, pdu->caData + 32, 32);
+
+//    qDebug() << curPath;
+//    qDebug() << oldName;
+//    qDebug() << newName;
+
+    QString oldPath = QString(curPath) + "/" + oldName;
+    QString newPath = QString(curPath) + "/" + newName;
+
+    QDir dir;
+    PDU* renameFilePDU = makePDU(0);
+    renameFilePDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RENAME_FILE_RESPOND);
+    if (!dir.exists(oldPath) || dir.exists(newPath))    // 旧路径或者新路径存在
+    {
+        memcpy(renameFilePDU->caData, PATH_IS_NOT_CORRECT, 64);
+    }
+    else
+    {
+        dir.rename(oldPath, newPath);
+    }
+    this->write((char*)renameFilePDU, renameFilePDU->uiPDULen);
+    free(renameFilePDU);
+    renameFilePDU = nullptr;
 }
 
 
@@ -437,6 +470,10 @@ void MyTcpSocket::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_REQUEST):      // 删除文件请求
         handleDeleteFileRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RENAME_FILE_REQUEST):      // 重命名文件请求
+        handleRenameFileRequest(pdu);
         break;
 
     default:

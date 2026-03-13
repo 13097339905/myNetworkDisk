@@ -69,6 +69,8 @@ private slots:
 
     void on_deleteFilePushButton_clicked();
 
+    void on_reNamePushButton_clicked();
+
 private:
     Ui::mainMenu *ui;
 
