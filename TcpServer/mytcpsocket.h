@@ -71,6 +71,9 @@ private:
 
     // 处理进入文件夹的请求
     void handleEnterFolderRequest(PDU* pdu);
+
+    // 处理返回上一级的请求
+    void handleReturnPreFolderRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

@@ -394,3 +394,21 @@ void mainMenu::on_fileListWidget_itemDoubleClicked(QListWidgetItem *item)
     free(pdu);
     pdu = nullptr;
 }
+
+// 点击返回后触发的槽函数
+void mainMenu::on_returnPushButton_clicked()
+{
+    // 将当前路径处理成要返回的路径，发送给服务器
+    QString curPath = TcpClient::getInstance().getMyCurPath();
+    int index = curPath.lastIndexOf('/');
+    curPath = curPath.remove(index, curPath.size() - index + 1);    // 分割出上一级路径出来
+
+    PDU* pdu = makePDU(curPath.size() + 1);  // 多开一个放\0，不然可能会出问题乱码
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_REQUEST);
+    memcpy(pdu->caMsg, curPath.toStdString().c_str(), curPath.size());
+    pdu->caMsg[curPath.size()] = '\0';       // 记得放\0
+
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
+}

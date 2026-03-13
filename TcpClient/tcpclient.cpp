@@ -392,9 +392,24 @@ void TcpClient::handleRenameFileRespond(PDU* pdu)
 // 处理进入文件夹的请求
 void TcpClient::handleEnterFolderRespond(PDU* pdu)
 {
-    m_myCurPath = pdu->caMsg;    // 进入文件夹了，要重新设置当前路径了
+    m_myCurPath = pdu->caMsg;    // 进入文件夹了，重新设置当前路径了
     qDebug() << m_myCurPath;
-    mainMenu::getInstance().emitFlushFileSignal();
+    mainMenu::getInstance().emitFlushFileSignal();       // 发出刷新的信号
+}
+
+// 处理返回上一级文件夹的请求
+void TcpClient::handleReturnPreFolderRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, ALREADY_IS_ROOT_FOLDER) == 0)   // 已经是根目录了，不能再返回了
+    {
+        QMessageBox::information(this, "return previous folder", ALREADY_IS_ROOT_FOLDER);
+    }
+    else
+    {
+        m_myCurPath = pdu->caMsg;    // 返回文件夹了，重新设置当前路径了
+        qDebug() << m_myCurPath;
+        mainMenu::getInstance().emitFlushFileSignal();    // 发出刷新的信号
+    }
 }
 
 void TcpClient::recvMsg()
@@ -485,6 +500,10 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ENTER_FOLDER_RESPOND):    // 处理收到进入文件夹的回复
         handleEnterFolderRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_RESPOND):    // 处理返回上一级文件夹的回复
+        handleReturnPreFolderRespond(pdu);
         break;
 
     }

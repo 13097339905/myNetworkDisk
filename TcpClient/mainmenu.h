@@ -77,6 +77,8 @@ private slots:
 
     void on_fileListWidget_itemDoubleClicked(QListWidgetItem *item);
 
+    void on_returnPushButton_clicked();
+
 private:
     Ui::mainMenu *ui;
 

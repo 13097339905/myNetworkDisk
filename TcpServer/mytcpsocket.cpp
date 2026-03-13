@@ -423,6 +423,33 @@ void MyTcpSocket::handleEnterFolderRequest(PDU* pdu)
     EnterFolderPDU = nullptr;
 }
 
+// 处理返回上一级的请求
+void MyTcpSocket::handleReturnPreFolderRequest(PDU* pdu)
+{
+    char path[pdu->uiMsgLen];
+    memcpy(path, pdu->caMsg, pdu->uiMsgLen);
+
+    PDU* returnPreFolderPDU;
+
+    if (strcmp(path, (QString(ROOT_PATH) + "\0").toStdString().c_str()) == 0)     // 已经是根目录了，不能再返回了
+    {
+        qDebug() << path;
+        qDebug() << ROOT_PATH;
+        returnPreFolderPDU = makePDU(0);
+        memcpy(returnPreFolderPDU->caData, ALREADY_IS_ROOT_FOLDER, 64);
+    }
+    else
+    {
+        returnPreFolderPDU = makePDU(QString(path).toUtf8().size());
+        memcpy(returnPreFolderPDU->caMsg, path, returnPreFolderPDU->uiMsgLen);
+    }
+    returnPreFolderPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_RESPOND);
+
+    this->write((char*)returnPreFolderPDU, returnPreFolderPDU->uiPDULen);
+    free(returnPreFolderPDU);
+    returnPreFolderPDU = nullptr;
+}
+
 
 void MyTcpSocket::recvMsg()
 {
@@ -502,6 +529,11 @@ void MyTcpSocket::recvMsg()
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ENTER_FOLDER_REQUEST):      // 进入文件夹请求
         handleEnterFolderRequest(pdu);
         break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_REQUEST):   // 返回上一级请求
+        handleReturnPreFolderRequest(pdu);
+        break;
+
 
     default:
         break;

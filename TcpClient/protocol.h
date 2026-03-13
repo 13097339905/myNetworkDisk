@@ -17,6 +17,7 @@ typedef unsigned int uint;
 #define DELETE_SUCCESSED        "delete success"
 #define DELETE_FAILED           "delete failed"
 #define PATH_IS_NOT_CORRECT     "old path not eixst or new path already exist"
+#define ALREADY_IS_ROOT_FOLDER  "already is root folder, can't return previous folder"
 
 enum class ENUM_MSG_TYPE
 {
@@ -64,6 +65,9 @@ enum class ENUM_MSG_TYPE
 
     ENUM_MSG_TYPE_ENTER_FOLDER_REQUEST,    // 进入文件夹请求
     ENUM_MSG_TYPE_ENTER_FOLDER_RESPOND,    // 进入文件夹回复
+
+    ENUM_MSG_TYPE_RETURN_PRE_FOLDER_REQUEST,    // 返回上一级请求
+    ENUM_MSG_TYPE_RETURN_PRE_FOLDER_RESPOND,    // 返回上一级回复
 
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
