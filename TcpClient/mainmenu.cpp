@@ -96,6 +96,11 @@ void mainMenu::emitFlushFileSignal()
     emit ui->flushFilePushButton->click();
 }
 
+QString mainMenu::getUploadFilePath()
+{
+    return m_uploadFilePath;
+}
+
 
 
 // 显示所有在线用户按钮的槽函数
@@ -407,6 +412,41 @@ void mainMenu::on_returnPushButton_clicked()
     pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_REQUEST);
     memcpy(pdu->caMsg, curPath.toStdString().c_str(), curPath.size());
     pdu->caMsg[curPath.size()] = '\0';       // 记得放\0
+
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
+}
+
+// 点击上传文件后触发的槽函数
+void mainMenu::on_uploadPushButton_clicked()
+{
+    // 1.点击后弹出文件对话框，选择哪个文件上传
+    // 2.获取文件的名字，还有当前路径（即上传到哪）
+    // 3.发送给服务器
+    // 4.服务器收到后返回消息回来，如果当前路径已经有上传的文件名或者路径错误，就上传失败
+    // 5.否则就新建一个文件，名字和上传的文件名一样，再发送给客户端，等待客户端将文件内容传输过来
+    m_uploadFilePath = QFileDialog::getOpenFileName(this);    // 获取要上传文件的路径
+    if (m_uploadFilePath.isEmpty())    // 没上传的话直接return
+    {
+        return;
+    }
+    int index = m_uploadFilePath.lastIndexOf('/');
+    QString uploadFileName = m_uploadFilePath.right(m_uploadFilePath.size() - index - 1);    // 提取出要上传的文件的名字
+
+    QFile uploadFile(m_uploadFilePath);
+    qint64 uploadFileSize = uploadFile.size();     // 获取上传文件的大小
+
+    QString curPath = TcpClient::getInstance().getMyCurPath();    // 获取当前路径，即将要上传的文件上传到当前路径下
+
+    PDU* pdu = makePDU(sizeof(qint64) + curPath.toUtf8().size() + 1);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_UPLOAD_FILE_REQUEST);
+    memcpy(pdu->caData, uploadFileName.toStdString().c_str(), 64);      // 要上传的文件名字
+    memcpy(pdu->caMsg, &uploadFileSize, sizeof(qint64));          // 要上传的文件大小
+    memcpy(pdu->caMsg + sizeof(qint64), curPath.toStdString().c_str(), pdu->uiMsgLen - sizeof(qint64));   // 要上传到的服务器的路径
+
+//    qDebug() << pdu->caData;
+//    qDebug() << pdu->caMsg;
 
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);

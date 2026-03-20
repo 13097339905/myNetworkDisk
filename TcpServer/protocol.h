@@ -18,6 +18,9 @@ typedef unsigned int uint;
 #define DELETE_FAILED           "delete failed"
 #define PATH_IS_NOT_CORRECT     "old path not eixst or new path already exist"
 #define ALREADY_IS_ROOT_FOLDER  "already is root folder, can't return previous folder"
+#define FILE_IS_EXIST           "upload file is exist in this folder"
+#define TRANSFER_DATA_FAILED    "transfer data failed"
+#define TRANSFER_DATA_SUCCESSED "transfer data successed"
 
 enum class ENUM_MSG_TYPE
 {
@@ -68,6 +71,12 @@ enum class ENUM_MSG_TYPE
 
     ENUM_MSG_TYPE_RETURN_PRE_FOLDER_REQUEST,    // 返回上一级请求
     ENUM_MSG_TYPE_RETURN_PRE_FOLDER_RESPOND,    // 返回上一级回复
+
+    ENUM_MSG_TYPE_UPLOAD_FILE_REQUEST,    // 上传文件请求
+    ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND,    // 上传文件回复
+
+    ENUM_MSG_TYPE_TRANSFER_DATA_REQUEST,    // 传输数据请求
+    ENUM_MSG_TYPE_TRANSFER_DATA_RESPOND,    // 传输数据回复
 
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };

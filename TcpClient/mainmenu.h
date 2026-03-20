@@ -6,6 +6,7 @@
 #include "privatechat.h"
 #include <QMap>
 #include <QListWidgetItem>
+#include <QFileDialog>
 
 namespace Ui {
 class mainMenu;
@@ -48,6 +49,9 @@ public:
     // 释放刷新的信号，去触发刷新的槽函数
     void emitFlushFileSignal();
 
+    // 获取要上传的文件的路径
+    QString getUploadFilePath();
+
 private slots:
     // 显示所有在线用户按钮的槽函数
     void on_showOnlinePushButton_clicked();
@@ -79,10 +83,14 @@ private slots:
 
     void on_returnPushButton_clicked();
 
+    void on_uploadPushButton_clicked();
+
 private:
     Ui::mainMenu *ui;
 
     QString m_myUsername;   // 在登录完成到主页面后保存自己用户名
+
+    QString m_uploadFilePath;   // 要上传的文件的路径
 };
 
 #endif // MAINMENU_H

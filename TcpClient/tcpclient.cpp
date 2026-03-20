@@ -8,6 +8,8 @@
 #include "mainmenu.h"
 #include "ui_mainmenu.h"
 #include "privatechat.h"
+#include <QTimer>
+#include <QThread>
 
 TcpClient::TcpClient(QWidget *parent)
     : QWidget(parent)
@@ -412,6 +414,85 @@ void TcpClient::handleReturnPreFolderRespond(PDU* pdu)
     }
 }
 
+// 处理上传文件的回复
+void TcpClient::handleUploadFileRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, FILE_IS_EXIST) == 0)    // 上传失败
+    {
+        QMessageBox::information(this, "upload file", FILE_IS_EXIST);
+        return;
+    }
+    else    // 上传成功
+    {
+        QString uploadFilePath = mainMenu::getInstance().getUploadFilePath();   // 获取要上传的文件的路径
+        QFile file(uploadFilePath);
+
+        int index = uploadFilePath.lastIndexOf('/');
+        QString uploadFileName = uploadFilePath.right(uploadFilePath.size() - index - 1);   // 提取出要上传的文件的名字
+        QString curPath = m_myCurPath + "/" + uploadFileName;       // 拼接成服务器所在文件的路径
+
+        if (file.open(QIODevice::ReadOnly))
+        {
+//            QByteArray fileData = file.readAll();    // 读取出数据
+
+//            PDU* pdu = makePDU(fileData.size());
+//            pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_REQUEST);
+
+//            memcpy(pdu->caData, curPath.toStdString().c_str(), 64);
+//            memcpy(pdu->caMsg, fileData.toStdString().c_str(), pdu->uiMsgLen);
+
+//            m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
+//            free(pdu);
+//            pdu = nullptr;
+//            file.close();
+            // 不能一次将readAll里面读取的所有的都发送出去，不然会出现半包的情况，要是文件太大的话，读取不到后面的文件内容
+            // 一次 readyRead 触发时，缓冲区里可能是：
+            // 半包	你只发了一帧 PDU，但 TCP 拆成多个报文传输，或内核还没都拷进缓冲区 → 这次 read 只能读到这一帧的前面一段
+            // 粘包	你连续发了两帧（或一帧 + 下一帧的开头），它们都在缓冲区里 → 一次 read 可能一次读到超过一帧的数据。
+            char onceMsg[4096];     // 4096个字节读写效率更高
+            qint64 onceSize = 0;
+            while (true)
+            {
+                onceSize = file.read(onceMsg, 4096);     // 一次最多读取4096大小的数据到onceMsg，返回值是实际读取到的数据大小
+                // qDebug() << onceSize;
+                if (onceSize > 0 && onceSize <= 4096)
+                {
+                    m_tcpSocket.write(onceMsg, onceSize);   // 一次最多发4096的大小的数据
+                }
+                if (onceSize <= 0)      // 整个文件都发送完了就break
+                {
+                    break;
+                }
+            }
+
+            PDU* pdu = makePDU(0);      // 发送完数据后，发送PDU说明传输完成了
+            pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_REQUEST);
+            memcpy(pdu->caData, curPath.toStdString().c_str(), 64);
+            m_tcpSocket.write((char*)pdu, pdu->uiPDULen);
+            free(pdu);
+            pdu = nullptr;
+            file.close();
+        }
+        else
+        {
+            QMessageBox::information(this, "open file", "open file failed");
+        }
+    }
+}
+
+// 处理传输数据的回复
+void TcpClient::handleTransferDataRespond(PDU* pdu)
+{
+    if (strcmp(pdu->caData, TRANSFER_DATA_SUCCESSED) == 0)
+    {
+        QMessageBox::information(this, "transfer data", TRANSFER_DATA_SUCCESSED);
+    }
+    else
+    {
+        QMessageBox::information(this, "transfer data", TRANSFER_DATA_FAILED);
+    }
+}
+
 void TcpClient::recvMsg()
 {
 //    qDebug() << m_tcpSocket.bytesAvailable();
@@ -504,6 +585,14 @@ void TcpClient::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_RESPOND):    // 处理返回上一级文件夹的回复
         handleReturnPreFolderRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND):    // 处理上传文件的回复
+        handleUploadFileRespond(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_RESPOND):    // 处理传输数据的回复
+        handleTransferDataRespond(pdu);
         break;
 
     }

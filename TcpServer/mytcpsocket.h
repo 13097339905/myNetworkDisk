@@ -24,6 +24,12 @@ public slots:
 private:
     QString m_username;   // 当前socket登录的用户
 
+    bool m_isTransferData;  // 是否是传输数据模式
+
+    qint64 m_fileSize;      // 要上传的文件大小
+
+    QByteArray m_totalData;    // 暂存数据，等数据完全接收
+
     // 处理客户端发过来的用户注册请求
     void handleRegisterRequest(PDU* pdu);
 
@@ -74,6 +80,12 @@ private:
 
     // 处理返回上一级的请求
     void handleReturnPreFolderRequest(PDU* pdu);
+
+    // 处理上传文件请求
+    void handleUploadFileRequest(PDU* pdu);
+
+    // 处理传输数据请求
+    void handleTransferDataRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

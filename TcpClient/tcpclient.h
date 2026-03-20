@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTcpSocket>     // 用来连接服务器
 #include "protocol.h"
+#include <QFile>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class TcpClient; }
@@ -81,6 +82,12 @@ private:
 
     // 处理返回上一级文件夹的请求
     void handleReturnPreFolderRespond(PDU* pdu);
+
+    // 处理上传文件的回复
+    void handleUploadFileRespond(PDU* pdu);
+
+    // 处理传输数据的回复
+    void handleTransferDataRespond(PDU* pdu);
 
 public:
     // 由于需要在主菜单页面中也需要socket与服务器进行通信，但是socket之前是TcpClient的私有成员

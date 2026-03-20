@@ -3,9 +3,11 @@
 #include "operatedb.h"
 #include "mytcpserver.h"
 #include <QDir>      // 用来操作文件目录的
+#include <QFile>
 
 MyTcpSocket::MyTcpSocket()
 {
+    m_isTransferData = false;
     connect(this, &MyTcpSocket::readyRead, this, &MyTcpSocket::recvMsg);
 
     connect(this, &MyTcpSocket::disconnected, this, [this](){
@@ -450,9 +452,106 @@ void MyTcpSocket::handleReturnPreFolderRequest(PDU* pdu)
     returnPreFolderPDU = nullptr;
 }
 
+// 处理上传文件请求
+void MyTcpSocket::handleUploadFileRequest(PDU* pdu)
+{
+    char uploadFileName[64];
+    char curPath[pdu->uiMsgLen];
+    memcpy(uploadFileName, pdu->caData, 64);       // 获取上传文件名
+    memcpy(&m_fileSize, pdu->caMsg, sizeof(qint64));  // 上传的文件大小
+    strcpy(curPath, pdu->caMsg + sizeof(qint64));    // 获取当前路径
+    qDebug() << uploadFileName;
+    qDebug() << curPath;
+    qDebug() << m_fileSize;
+
+    QString path = QString(curPath) + "/" +  QString(uploadFileName);    // 拼接起来
+    QFile file(path);
+    qDebug() << path;
+
+    PDU* uploadFilePDU = makePDU(0);
+    uploadFilePDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND);
+    if (!file.exists())    // 当前文件不存在，则创建一个文件用来给存储用户后面传来的文件数据
+    {
+        file.open(OpenModeFlag::WriteOnly);   // 以只写的方式打开文件，文件如果不存在会自动创建
+        file.close();
+    }
+    else
+    {
+        memcpy(uploadFilePDU->caData, FILE_IS_EXIST, 64);
+    }
+    m_isTransferData= true;      // 变为传输数据模式
+    this->write((char*)uploadFilePDU, uploadFilePDU->uiPDULen);
+    free(uploadFilePDU);
+    uploadFilePDU = nullptr;
+}
+
+// 处理传输数据请求
+void MyTcpSocket::handleTransferDataRequest(PDU* pdu)
+{
+    char path[64];
+    memcpy(path, pdu->caData, 64);
+
+    qDebug() << m_totalData.size();
+
+    QFile file(path);
+    PDU* transferDataPDU = makePDU(0);
+    if (file.open(QIODevice::WriteOnly))
+    {
+        file.write(m_totalData.constData(), m_totalData.size());
+        m_totalData.clear();        // 保存后记得清除掉之前的暂存文件数据，因为还要用来保存下一次文件上传
+        m_isTransferData = false;   // 将其重置为false
+        file.close();
+        memcpy(transferDataPDU->caData, TRANSFER_DATA_SUCCESSED, 64);
+    }
+    else
+    {
+        memcpy(transferDataPDU->caData, TRANSFER_DATA_FAILED, 64);
+    }
+    transferDataPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_RESPOND);
+    this->write((char*)transferDataPDU, transferDataPDU->uiPDULen);
+    free(transferDataPDU);
+    transferDataPDU = nullptr;
+}
+
 
 void MyTcpSocket::recvMsg()
 {
+    if (m_isTransferData)
+    {
+        // 必须循环读取，直到缓冲区无数据
+        while (this->bytesAvailable() > 0)
+        {
+            qint64 remaining = m_fileSize - m_totalData.size();    // 剩余数据大小
+            if (remaining <= 0)
+            {
+                m_isTransferData = false;
+                qDebug() << "======== 文件接收完成 ========";
+                break;
+            }
+
+            // 只读取还差多少“文件内容”字节，避免粘包把后续的 PDU(TRANSFER_DATA_REQUEST)也吞进来
+            qint64 toRead = qMin<qint64>(remaining, this->bytesAvailable());
+            QByteArray data = this->read(toRead);
+            m_totalData += data;
+
+//            qDebug() << "接收大小：" << data.size()
+//                     << "  累计：" << m_totalData.size()
+//                     << "  总文件大小：" << m_fileSize;
+
+            // 判断是否收完文件
+            if (m_totalData.size() >= m_fileSize)
+            {
+                m_isTransferData = false;
+                qDebug() << "======== 文件接收完成 ========";
+                break;
+            }
+        }
+    }
+
+    if (bytesAvailable() < (int)sizeof(PDU)) {
+        return; // 读 PDU 前 判断数据够不够
+    }
+
 //    qDebug() << this->bytesAvailable();
     uint uiPDULen = 0;
     this->read((char*)&uiPDULen, sizeof(uint));    // 先读取总长度4个字节出来，到uiPDULen
@@ -534,6 +633,13 @@ void MyTcpSocket::recvMsg()
         handleReturnPreFolderRequest(pdu);
         break;
 
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_UPLOAD_FILE_REQUEST):   // 上传文件请求
+        handleUploadFileRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_REQUEST):   // 传输数据请求
+        handleTransferDataRequest(pdu);
+        break;
 
     default:
         break;
