@@ -493,111 +493,278 @@ void TcpClient::handleTransferDataRespond(PDU* pdu)
     }
 }
 
+// 处理下载文件的回复
+void TcpClient::handleDownloadFileRespond(PDU* pdu)
+{
+    // 客户端接收文件数据
+    qint64 totalSize;
+    char curData[pdu->uiMsgLen];
+    memcpy(&totalSize, pdu->caData, sizeof(qint64));   // 获取文件剩余大小
+    memcpy(curData, pdu->caMsg, pdu->uiMsgLen);   // 获取当前数据
+    // m_totalData += curData;   // 客户端用 m_totalData += curData; 追加二进制会被截断
+    // 如果这里走的是 QByteArray::operator+=(const char*) 那种“按 C 字符串遇到 \0 截断”的重载
+    // 那么下载文件只要中间出现 0x00，就会提前截断，导致保存内容错误、长度不对。
+    m_totalData.append(curData, pdu->uiMsgLen);
+
+    // qDebug() << m_totalData.size();
+
+    if (m_totalData.size() >= totalSize)      // 接收完了文件的所有数据，保存到用户指定的路径
+    {
+        QString downloadPath = mainMenu::getInstance().getDownloadFilePath();   // 得到下载路径
+        QFile file(downloadPath);
+        if (file.open(QIODevice::WriteOnly))     // 以只写的方式打开文件，如果不存在，会新建一个
+        {
+            file.write(m_totalData, m_totalData.size());   // 把所有数据全部写入当前文件
+            m_totalData.clear();  // 清除当前数据
+            file.close();
+            QMessageBox::information(this, "download file", "download file successed");
+        }
+        else
+        {
+            QMessageBox::information(this, "download file", "download file failed");
+        }
+    }
+}
+
+//void TcpClient::recvMsg()
+//{
+////    qDebug() << m_tcpSocket.bytesAvailable();
+//    uint uiPDULen = 0;      // 将收到的PDU的总长度读到uiPDULen
+//    m_tcpSocket.read((char*)&uiPDULen, sizeof(uint));    // 先读取收到的PDU的总长度4个字节出来，到uiPDULen
+//    uint uiMsglen = uiPDULen - sizeof(PDU);        // 得到消息数据部分大小
+//    PDU* pdu = makePDU(uiMsglen);                  // 根据消息数据部分大小构造出pdu
+//    // (char*)pdu + sizeof(uint):前四个字节之前已经读完了，所以要读到pud偏移之前读的位置上
+//    // uiPDULen - sizeof(uint):之前读的不用读了，所以要减去
+//    m_tcpSocket.read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));  // 将剩余部分全部读到pdu中
+//    // qDebug() << pdu->uiMsgType << username << password;
+
+//    switch (pdu->uiMsgType)
+//    {
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND):   // 收到服务器的注册回复
+//        handleRegisterRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND):     // 收到服务器的登录回复
+//        handleLoginRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND):    // 收到服务器的查询在线用户回复
+//        handleSelectOnlineUserRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SEARCH_USER_RESPOND):       // 收到服务器的查询用户回复
+//        handleSearchUserRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_RESPOND):        // 处理服务器的加好友的回复
+//        handleAddFriendRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REQUEST):        // 处理服务器转发的加好友的请求
+//        handleAddFriendRequest(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_AGREE):          // 收到同意加好友的消息
+//        handleAgreeFriend(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REFUSE):        // 收到拒绝加好友的消息
+//        handleRefuseFriend(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_RESPOND):    // 收到查询好友的回复
+//        handleSelectFriend(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND):    // 收到删除好友的回复
+//        handleDeleteFriendRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST):    // 被删除的收到删除好友的请求
+//        handleDeleteFriendRequest(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_REQUEST):    // 处理收到好友私聊的请求
+//        handlePrivateChatRequest(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_RESPOND):    // 处理收到好友私聊的回复
+//        handlePrivateChatRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_GROUP_CHAT_REQUEST):    // 处理收到群聊的请求
+//        handleGroupChatRequest(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_RESPOND):    // 处理收到创建文件夹的回复
+//        handleCreateFolderRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_RESPOND):    // 处理收到刷新文件的回复
+//        handleFlushFileRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_RESPOND):    // 处理收到删除文件的回复
+//        handleDeleteFileRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RENAME_FILE_RESPOND):    // 处理收到重命名文件的回复
+//        handleRenameFileRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ENTER_FOLDER_RESPOND):    // 处理收到进入文件夹的回复
+//        handleEnterFolderRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_RESPOND):    // 处理返回上一级文件夹的回复
+//        handleReturnPreFolderRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND):    // 处理上传文件的回复
+//        handleUploadFileRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_RESPOND):    // 处理传输数据的回复
+//        handleTransferDataRespond(pdu);
+//        break;
+
+//    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND):    // 处理下载文件的回复
+//        handleDownloadFileRespond(pdu);
+//        break;
+
+//    }
+//    free(pdu);
+//    pdu = nullptr;
+//}
+
 void TcpClient::recvMsg()
 {
-//    qDebug() << m_tcpSocket.bytesAvailable();
-    uint uiPDULen = 0;      // 将收到的PDU的总长度读到uiPDULen
-    m_tcpSocket.read((char*)&uiPDULen, sizeof(uint));    // 先读取收到的PDU的总长度4个字节出来，到uiPDULen
-    uint uiMsglen = uiPDULen - sizeof(PDU);        // 得到消息数据部分大小
-    PDU* pdu = makePDU(uiMsglen);                  // 根据消息数据部分大小构造出pdu
-    // (char*)pdu + sizeof(uint):前四个字节之前已经读完了，所以要读到pud偏移之前读的位置上
-    // uiPDULen - sizeof(uint):之前读的不用读了，所以要减去
-    m_tcpSocket.read((char*)pdu + sizeof(uint), uiPDULen - sizeof(uint));  // 将剩余部分全部读到pdu中
-    // qDebug() << pdu->uiMsgType << username << password;
-
-    switch (pdu->uiMsgType)
+    // 循环处理所有粘包PDU，直到数据不够
+    while (true)
     {
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND):   // 收到服务器的注册回复
-        handleRegisterRespond(pdu);
-        break;
+        // 步骤1：判断缓冲区里有没有至少 4 字节数据
+        // bytesAvailable()：返回当前 TCP 接收缓冲区里 未读取的字节数
+        // sizeof(uint) = 4 字节，这是 PDU 协议最开头的 "总长度字段"
+        // 作用：如果连 4 个字节都没有，连 PDU 多大都不知道，直接退出，不读了
+        // 解决问题：防止无数据硬读，出现 maxSize < 0 报错
+        if (m_tcpSocket.bytesAvailable() < sizeof(uint))
+            break;
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND):     // 收到服务器的登录回复
-        handleLoginRespond(pdu);
-        break;
+        // 步骤2：偷看（peek）前 4 字节，获取 PDU 总长度
+        // peek：读取数据，但不从缓冲区移除（只看不拿）
+        // 作用：先知道这个 PDU 一共有多大，为后面判断做准备
+        uint PDULen = 0;
+        m_tcpSocket.peek((char*)&PDULen, sizeof(uint));
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND):    // 收到服务器的查询在线用户回复
-        handleSelectOnlineUserRespond(pdu);
-        break;
+        // 步骤3：安全校验，判断 PDU 长度是否合法
+        // 1. 不能小于 PDU 头部本身大小（无效包）
+        // 2. 不能大于 10MB（防止恶意数据、内存爆炸）
+        // 作用：过滤错误数据、乱码数据，防止程序崩溃
+        if (PDULen < sizeof(PDU) || PDULen > 10 * 1024 * 1024)
+            break;
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SEARCH_USER_RESPOND):       // 收到服务器的查询用户回复
-        handleSearchUserRespond(pdu);
-        break;
+        // 步骤4：判断缓冲区数据是否足够读完 一整个PDU
+        // TCP 是流式传输，一个包可能分两次到达
+        // 如果缓冲区数据 < PDU总长度 → 包没收完，不能读，等下一波数据
+        // 作用：保证永远只读“完整的包”，不读半包，不解析错乱
+        if (m_tcpSocket.bytesAvailable() < PDULen)
+            break;
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_RESPOND):        // 处理服务器的加好友的回复
-        handleAddFriendRespond(pdu);
-        break;
+        // 步骤5：【真正读取】从缓冲区拿走数据，读取完整 PDU
+        // 5.1 读取 4 字节长度（真正从缓冲区移除数据）
+        m_tcpSocket.read((char*)&PDULen, sizeof(uint));
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REQUEST):        // 处理服务器转发的加好友的请求
-        handleAddFriendRequest(pdu);
-        break;
+        // 5.2 计算实际消息体（caMsg）的长度
+        // PDU总长度 - PDU固定头部长度 = 真实数据长度
+        uint MsgLen = PDULen - sizeof(PDU);
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_AGREE):          // 收到同意加好友的消息
-        handleAgreeFriend(pdu);
-        break;
+        // 5.3 根据计算出的长度，创建对应的 PDU 结构体
+        PDU* pdu = makePDU(MsgLen);
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REFUSE):        // 收到拒绝加好友的消息
-        handleRefuseFriend(pdu);
-        break;
+        // 5.4 读取 PDU 剩余的所有数据
+        // (char*)pdu + sizeof(uint)：跳过已经读过的 4 字节长度
+        // uiPDULen - sizeof(uint)：读取剩下的全部协议内容
+        m_tcpSocket.read((char*)pdu + sizeof(uint), PDULen - sizeof(uint));
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_RESPOND):    // 收到查询好友的回复
-        handleSelectFriend(pdu);
-        break;
+        // 6. 处理PDU
+        switch (pdu->uiMsgType)
+        {
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_REGISTER_RESPOND):
+            handleRegisterRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_LOGIN_RESPOND):
+            handleLoginRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_ONLINE_USER_RESPOND):
+            handleSelectOnlineUserRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SEARCH_USER_RESPOND):
+            handleSearchUserRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_RESPOND):
+            handleAddFriendRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REQUEST):
+            handleAddFriendRequest(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_AGREE):
+            handleAgreeFriend(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ADD_FRIEND_REFUSE):
+            handleRefuseFriend(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SELECT_FRIEND_RESPOND):
+            handleSelectFriend(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND):
+            handleDeleteFriendRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST):
+            handleDeleteFriendRequest(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_REQUEST):
+            handlePrivateChatRequest(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_RESPOND):
+            handlePrivateChatRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_GROUP_CHAT_REQUEST):
+            handleGroupChatRequest(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_RESPOND):
+            handleCreateFolderRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_RESPOND):
+            handleFlushFileRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_RESPOND):
+            handleDeleteFileRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RENAME_FILE_RESPOND):
+            handleRenameFileRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ENTER_FOLDER_RESPOND):
+            handleEnterFolderRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_RESPOND):
+            handleReturnPreFolderRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND):
+            handleUploadFileRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_RESPOND):
+            handleTransferDataRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND):
+            handleDownloadFileRespond(pdu);
+            break;
+        default:
+            break;
+        }
 
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND):    // 收到删除好友的回复
-        handleDeleteFriendRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST):    // 被删除的收到删除好友的请求
-        handleDeleteFriendRequest(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_REQUEST):    // 处理收到好友私聊的请求
-        handlePrivateChatRequest(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_PRIVATE_CHAT_RESPOND):    // 处理收到好友私聊的回复
-        handlePrivateChatRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_GROUP_CHAT_REQUEST):    // 处理收到群聊的请求
-        handleGroupChatRequest(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_CREATE_FOLDER_RESPOND):    // 处理收到创建文件夹的回复
-        handleCreateFolderRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_FLUSH_FILE_RESPOND):    // 处理收到刷新文件的回复
-        handleFlushFileRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DELETE_FILE_RESPOND):    // 处理收到删除文件的回复
-        handleDeleteFileRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RENAME_FILE_RESPOND):    // 处理收到重命名文件的回复
-        handleRenameFileRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_ENTER_FOLDER_RESPOND):    // 处理收到进入文件夹的回复
-        handleEnterFolderRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_RETURN_PRE_FOLDER_RESPOND):    // 处理返回上一级文件夹的回复
-        handleReturnPreFolderRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND):    // 处理上传文件的回复
-        handleUploadFileRespond(pdu);
-        break;
-
-    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_RESPOND):    // 处理传输数据的回复
-        handleTransferDataRespond(pdu);
-        break;
-
+        free(pdu);
+        pdu = nullptr;
     }
-    free(pdu);
-    pdu = nullptr;
 }
 
 // 发送登录请求给服务器

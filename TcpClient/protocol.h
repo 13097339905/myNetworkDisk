@@ -78,6 +78,9 @@ enum class ENUM_MSG_TYPE
     ENUM_MSG_TYPE_TRANSFER_DATA_REQUEST,    // 传输数据请求
     ENUM_MSG_TYPE_TRANSFER_DATA_RESPOND,    // 传输数据回复
 
+    ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST,    // 下载文件请求
+    ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND,    // 下载文件回复
+
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };
 

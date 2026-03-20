@@ -86,6 +86,9 @@ private:
 
     // 处理传输数据请求
     void handleTransferDataRequest(PDU* pdu);
+
+    // 处理下载文件的请求
+    void handleDownloadFileRequest(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

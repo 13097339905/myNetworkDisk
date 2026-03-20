@@ -96,9 +96,14 @@ void mainMenu::emitFlushFileSignal()
     emit ui->flushFilePushButton->click();
 }
 
-QString mainMenu::getUploadFilePath()
+QString mainMenu::getUploadFilePath() const
 {
     return m_uploadFilePath;
+}
+
+QString mainMenu::getDownloadFilePath() const
+{
+    return m_downloadFilePath;
 }
 
 
@@ -448,6 +453,35 @@ void mainMenu::on_uploadPushButton_clicked()
 //    qDebug() << pdu->caData;
 //    qDebug() << pdu->caMsg;
 
+    TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
+    free(pdu);
+    pdu = nullptr;
+}
+
+// 点击下载文件后触发的槽函数
+void mainMenu::on_downloadPushButton_clicked()
+{
+    // 1.客户端选中需要下载的文件（文件是存储在服务器的）
+    QListWidgetItem* item = ui->fileListWidget->currentItem();
+    if (item == nullptr)
+    {
+        QMessageBox::information(this, "download file", "please select a file");
+        return;
+    }
+    QString fileName = item->text().split('\t')[0];      // 获取要下载的文件名
+    QString filePath = TcpClient::getInstance().getMyCurPath() + '/' + fileName;   // 拼接出要下载的文件的完整路径
+    qDebug() << filePath;
+
+    // 2.保存需要保存到的客户端的路径
+    m_downloadFilePath = QFileDialog::getSaveFileName();    // 得到需要下载保存到哪里的路径
+    if (m_downloadFilePath.isEmpty())
+        return;
+    qDebug() << m_downloadFilePath;
+
+    // 3.将选中文件的路径发送给服务器
+    PDU* pdu = makePDU(0);
+    pdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST);
+    memcpy(pdu->caData, filePath.toStdString().c_str(), 64);
     TcpClient::getInstance().getSocket().write((char*)pdu, pdu->uiPDULen);
     free(pdu);
     pdu = nullptr;

@@ -50,7 +50,10 @@ public:
     void emitFlushFileSignal();
 
     // 获取要上传的文件的路径
-    QString getUploadFilePath();
+    QString getUploadFilePath() const;
+
+    // 获取要保存的路径
+    QString getDownloadFilePath() const;
 
 private slots:
     // 显示所有在线用户按钮的槽函数
@@ -85,12 +88,16 @@ private slots:
 
     void on_uploadPushButton_clicked();
 
+    void on_downloadPushButton_clicked();
+
 private:
     Ui::mainMenu *ui;
 
     QString m_myUsername;   // 在登录完成到主页面后保存自己用户名
 
     QString m_uploadFilePath;   // 要上传的文件的路径
+
+    QString m_downloadFilePath;    // 下载文件到哪里的路径
 };
 
 #endif // MAINMENU_H

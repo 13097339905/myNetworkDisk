@@ -89,6 +89,9 @@ private:
     // 处理传输数据的回复
     void handleTransferDataRespond(PDU* pdu);
 
+    // 处理下载文件的回复
+    void handleDownloadFileRespond(PDU* pdu);
+
 public:
     // 由于需要在主菜单页面中也需要socket与服务器进行通信，但是socket之前是TcpClient的私有成员
     // 所以需要改变一下，看怎么能让mainMenu也能拿到socket进行通信
@@ -118,6 +121,7 @@ private:
     quint16 m_usPort;       // 读取的端口号，存储到m_usPort，quint16，无符号16位，2个字节，就是unsigned short
     QTcpSocket m_tcpSocket; // 连接服务器，与服务器进行数据交互
     QString m_myCurPath;    // 该用户当前所在的路径
+    QByteArray m_totalData; // 服务器传过来的下载的数据
 
 };
 #endif // TCPCLIENT_H

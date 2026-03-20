@@ -513,6 +513,41 @@ void MyTcpSocket::handleTransferDataRequest(PDU* pdu)
     transferDataPDU = nullptr;
 }
 
+// 处理下载文件的请求
+void MyTcpSocket::handleDownloadFileRequest(PDU* pdu)
+{
+    // 获取客户端申请下载的文件的路径
+    char filePath[64];
+    memcpy(filePath, pdu->caData, 64);
+
+    qDebug() << filePath;
+
+    // 发送文件数据给服务器
+    QFile file(filePath);
+    QFileInfo fileInfo(filePath);
+    qint64 totalSize = fileInfo.size();    // 文件的大小
+    if (file.open(QIODevice::ReadOnly))
+    {
+        while (true)
+        {
+            char curData[4096];
+            int curSize = file.read(curData, 4096);    // 每次从文件中读4096大小出来，实际读取curSize大小
+            // qDebug() << curSize;
+            if (curSize <= 0)       // 整个文件传输完了，直接return掉
+                return;
+
+            PDU* downloadFilePDU = makePDU(curSize);   // 还是以PDU的格式发送，数据全部存到caMsg里面，最多放4096大小
+            downloadFilePDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND);  // 设置消息类型
+            memcpy(downloadFilePDU->caData, &totalSize, sizeof(qint64));    // 将文件总大小存到caData里面
+
+            memcpy(downloadFilePDU->caMsg, curData, curSize);    // 将读取出来的curSize大小存在caMsg里面
+            this->write((char*)downloadFilePDU, downloadFilePDU->uiPDULen);   // 将文件数据发送出去
+            free(downloadFilePDU);
+            downloadFilePDU = nullptr;
+        }
+    }
+}
+
 
 void MyTcpSocket::recvMsg()
 {
@@ -528,16 +563,13 @@ void MyTcpSocket::recvMsg()
                 qDebug() << "======== 文件接收完成 ========";
                 break;
             }
-
             // 只读取还差多少“文件内容”字节，避免粘包把后续的 PDU(TRANSFER_DATA_REQUEST)也吞进来
             qint64 toRead = qMin<qint64>(remaining, this->bytesAvailable());
             QByteArray data = this->read(toRead);
             m_totalData += data;
-
 //            qDebug() << "接收大小：" << data.size()
 //                     << "  累计：" << m_totalData.size()
 //                     << "  总文件大小：" << m_fileSize;
-
             // 判断是否收完文件
             if (m_totalData.size() >= m_fileSize)
             {
@@ -639,6 +671,10 @@ void MyTcpSocket::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_TRANSFER_DATA_REQUEST):   // 传输数据请求
         handleTransferDataRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST):   // 下载文件请求
+        handleDownloadFileRequest(pdu);
         break;
 
     default:
