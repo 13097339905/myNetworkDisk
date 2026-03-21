@@ -1,0 +1,19 @@
+# 忽略所有 build- 开头的编译文件夹
+build-*/
+
+# 忽略编译产物
+*.exe
+*.o
+*.dll
+*.pdb
+*.ilk
+
+# 忽略 Qt 自动生成的文件
+moc_*.cpp
+moc_*.o
+qrc_*.cpp
+qrc_*.o
+
+# 忽略 Makefile 构建文件
+Makefile
+Makefile.*

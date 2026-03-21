@@ -226,6 +226,10 @@ release/moc_mytcpserver.cpp: ../TcpServer/mytcpserver.h \
 		../TcpServer/mytcpsocket.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/QTcpSocket \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/qtcpsocket.h \
+		../TcpServer/protocol.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDir \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qdir.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfileinfo.h \
 		release/moc_predefs.h \
 		../../../Application/QT/5.12.8/mingw73_64/bin/moc.exe
 	F:\Application\QT\5.12.8\mingw73_64\bin\moc.exe $(DEFINES) --include F:/C++/myNetworkDisk/build-TcpServer-Desktop_Qt_5_12_8_MinGW_64_bit-Debug/release/moc_predefs.h -IF:/Application/QT/5.12.8/mingw73_64/mkspecs/win32-g++ -IF:/C++/myNetworkDisk/TcpServer -IF:/Application/QT/5.12.8/mingw73_64/include -IF:/Application/QT/5.12.8/mingw73_64/include/QtWidgets -IF:/Application/QT/5.12.8/mingw73_64/include/QtGui -IF:/Application/QT/5.12.8/mingw73_64/include/QtANGLE -IF:/Application/QT/5.12.8/mingw73_64/include/QtNetwork -IF:/Application/QT/5.12.8/mingw73_64/include/QtSql -IF:/Application/QT/5.12.8/mingw73_64/include/QtCore -I. -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include/c++ -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include/c++/x86_64-w64-mingw32 -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include/c++/backward -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include-fixed -IF:/Application/QT/Tools/mingw730_64/x86_64-w64-mingw32/include ..\TcpServer\mytcpserver.h -o release\moc_mytcpserver.cpp
@@ -299,6 +303,12 @@ release/moc_mytcpsocket.cpp: ../TcpServer/mytcpsocket.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qcontiguouscache.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qsharedpointer.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qsharedpointer_impl.h \
+		../TcpServer/protocol.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDir \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qdir.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfileinfo.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfile.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfiledevice.h \
 		release/moc_predefs.h \
 		../../../Application/QT/5.12.8/mingw73_64/bin/moc.exe
 	F:\Application\QT\5.12.8\mingw73_64\bin\moc.exe $(DEFINES) --include F:/C++/myNetworkDisk/build-TcpServer-Desktop_Qt_5_12_8_MinGW_64_bit-Debug/release/moc_predefs.h -IF:/Application/QT/5.12.8/mingw73_64/mkspecs/win32-g++ -IF:/C++/myNetworkDisk/TcpServer -IF:/Application/QT/5.12.8/mingw73_64/include -IF:/Application/QT/5.12.8/mingw73_64/include/QtWidgets -IF:/Application/QT/5.12.8/mingw73_64/include/QtGui -IF:/Application/QT/5.12.8/mingw73_64/include/QtANGLE -IF:/Application/QT/5.12.8/mingw73_64/include/QtNetwork -IF:/Application/QT/5.12.8/mingw73_64/include/QtSql -IF:/Application/QT/5.12.8/mingw73_64/include/QtCore -I. -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include/c++ -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include/c++/x86_64-w64-mingw32 -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include/c++/backward -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include -IF:/Application/QT/Tools/mingw730_64/lib/gcc/x86_64-w64-mingw32/7.3.0/include-fixed -IF:/Application/QT/Tools/mingw730_64/x86_64-w64-mingw32/include ..\TcpServer\mytcpsocket.h -o release\moc_mytcpsocket.cpp
@@ -707,6 +717,10 @@ release/mytcpserver.o: ../TcpServer/mytcpserver.cpp ../TcpServer/mytcpserver.h \
 		../TcpServer/mytcpsocket.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/QTcpSocket \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/qtcpsocket.h \
+		../TcpServer/protocol.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDir \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qdir.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfileinfo.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDebug
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\mytcpserver.o ..\TcpServer\mytcpserver.cpp
 
@@ -779,8 +793,43 @@ release/mytcpsocket.o: ../TcpServer/mytcpsocket.cpp ../TcpServer/mytcpsocket.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qcontiguouscache.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qsharedpointer.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qsharedpointer_impl.h \
+		../TcpServer/protocol.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDir \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qdir.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfileinfo.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfile.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfiledevice.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDebug \
-		../TcpServer/protocol.h
+		../TcpServer/operatedb.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QObject \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtSql/QSqlDatabase \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtSql/qsqldatabase.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtSql/qtsqlglobal.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtSql/qtsql-config.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtSql/QSqlQuery \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtSql/qsqlquery.h \
+		../TcpServer/mytcpserver.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/QTcpServer \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/qtcpserver.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/qhostaddress.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/QList \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qevent.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qtguiglobal.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qtgui-config.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qwindowdefs.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qwindowdefs_win.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qregion.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qrect.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qmargins.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qsize.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qdatastream.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qkeysequence.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qurl.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qurlquery.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qvector2d.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qtouchdevice.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QFile \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QFileInfo
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\mytcpsocket.o ..\TcpServer\mytcpsocket.cpp
 
 release/operatedb.o: ../TcpServer/operatedb.cpp ../TcpServer/operatedb.h \
@@ -896,7 +945,9 @@ release/operatedb.o: ../TcpServer/operatedb.cpp ../TcpServer/operatedb.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfiledevice.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qvector2d.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qtouchdevice.h \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDebug
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDebug \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtSql/QSqlError \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtSql/qsqlerror.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\operatedb.o ..\TcpServer\operatedb.cpp
 
 release/protocol.o: ../TcpServer/protocol.cpp ../TcpServer/protocol.h
@@ -1006,15 +1057,7 @@ release/tcpserver.o: ../TcpServer/tcpserver.cpp ../TcpServer/tcpserver.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfiledevice.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qvector2d.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qtouchdevice.h \
-		../TcpServer/ui_tcpserver.h \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QVariant \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtWidgets/QApplication \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtWidgets/qapplication.h \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qcoreapplication.h \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qeventloop.h \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtWidgets/qdesktopwidget.h \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qguiapplication.h \
-		../../../Application/QT/5.12.8/mingw73_64/include/QtGui/qinputmethod.h \
+		ui_tcpserver.h \
 		../TcpServer/mytcpserver.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/QTcpServer \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/qtcpserver.h \
@@ -1026,6 +1069,10 @@ release/tcpserver.o: ../TcpServer/tcpserver.cpp ../TcpServer/tcpserver.h \
 		../TcpServer/mytcpsocket.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/QTcpSocket \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtNetwork/qtcpsocket.h \
+		../TcpServer/protocol.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDir \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qdir.h \
+		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/qfileinfo.h \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QFile \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QByteArray \
 		../../../Application/QT/5.12.8/mingw73_64/include/QtCore/QDebug \

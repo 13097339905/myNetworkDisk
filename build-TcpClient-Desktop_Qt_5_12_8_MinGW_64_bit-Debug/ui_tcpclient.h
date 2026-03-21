@@ -42,7 +42,7 @@ public:
         TcpClient->resize(495, 263);
         layoutWidget = new QWidget(TcpClient);
         layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(20, 20, 443, 208));
+        layoutWidget->setGeometry(QRect(20, 20, 443, 211));
         verticalLayout_2 = new QVBoxLayout(layoutWidget);
         verticalLayout_2->setObjectName(QString::fromUtf8("verticalLayout_2"));
         verticalLayout_2->setContentsMargins(0, 0, 0, 0);
@@ -74,7 +74,10 @@ public:
 
         usernameLineEdit = new QLineEdit(layoutWidget);
         usernameLineEdit->setObjectName(QString::fromUtf8("usernameLineEdit"));
-        usernameLineEdit->setFont(font);
+        QFont font1;
+        font1.setFamily(QString::fromUtf8("\345\276\256\350\275\257\351\233\205\351\273\221"));
+        font1.setPointSize(14);
+        usernameLineEdit->setFont(font1);
 
         gridLayout->addWidget(usernameLineEdit, 0, 1, 1, 1);
 

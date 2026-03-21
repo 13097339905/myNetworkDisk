@@ -224,7 +224,6 @@ Makefile: ../TcpClient/TcpClient.pro ../../../Application/QT/5.12.8/mingw73_64/m
 		../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/qt_config.prf \
 		../../../Application/QT/5.12.8/mingw73_64/mkspecs/win32-g++/qmake.conf \
 		../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/spec_post.prf \
-		.qmake.stash \
 		../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/exclusive_builds.prf \
 		../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/toolchain.prf \
 		../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/default_pre.prf \
@@ -416,7 +415,6 @@ Makefile: ../TcpClient/TcpClient.pro ../../../Application/QT/5.12.8/mingw73_64/m
 ../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/qt_config.prf:
 ../../../Application/QT/5.12.8/mingw73_64/mkspecs/win32-g++/qmake.conf:
 ../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/spec_post.prf:
-.qmake.stash:
 ../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/exclusive_builds.prf:
 ../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/toolchain.prf:
 ../../../Application/QT/5.12.8/mingw73_64/mkspecs/features/default_pre.prf:
