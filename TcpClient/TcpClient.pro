@@ -20,17 +20,20 @@ SOURCES += \
     mainmenu.cpp \
     privatechat.cpp \
     protocol.cpp \
+    sharefile.cpp \
     tcpclient.cpp
 
 HEADERS += \
     mainmenu.h \
     privatechat.h \
     protocol.h \
+    sharefile.h \
     tcpclient.h
 
 FORMS += \
     mainmenu.ui \
     privatechat.ui \
+    sharefile.ui \
     tcpclient.ui
 
 # Default rules for deployment.

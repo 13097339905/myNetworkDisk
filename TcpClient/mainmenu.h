@@ -7,6 +7,7 @@
 #include <QMap>
 #include <QListWidgetItem>
 #include <QFileDialog>
+#include "sharefile.h"
 
 namespace Ui {
 class mainMenu;
@@ -89,6 +90,8 @@ private slots:
     void on_uploadPushButton_clicked();
 
     void on_downloadPushButton_clicked();
+
+    void on_shareFilePushButton_clicked();
 
 private:
     Ui::mainMenu *ui;

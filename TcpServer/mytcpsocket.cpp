@@ -4,6 +4,55 @@
 #include "mytcpserver.h"
 #include <QDir>      // 用来操作文件目录的
 #include <QFile>
+#include <QFileInfo>
+
+// 递归复制文件/文件夹到目标路径(不覆盖，目标已存在则需要上层处理)
+static bool copyRecursively(const QString& srcPath, const QString& dstPath)
+{
+    QFileInfo srcInfo(srcPath);   // 源路径
+    if (!srcInfo.exists())        // 如果源路径不存在return false
+        return false;
+
+    if (srcInfo.isDir())       // 如果源路径是个文件夹
+    {
+        QDir dstDir(dstPath);  // 定义目标文件夹对象
+
+        // 如果目标文件夹不存在，尝试创建（mkpath：自动创建多级目录）
+        if (!dstDir.exists() && !dstDir.mkpath(dstPath))   // 如果不存在并且创建失败就return false
+            return false;
+
+        QDir srcDir(srcPath);  // 打开源文件夹
+        // 获取文件夹里所有内容（排除 . 和 ..，获取所有文件/文件夹）
+        // QDir::NoDotAndDotDot → 不显示 . 和 ..
+        // QDir::AllEntries       → 包含文件、文件夹
+        // QDir::DirsFirst        → 文件夹排在前面
+        QFileInfoList entries = srcDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries, QDir::DirsFirst);
+
+        // 遍历文件夹里每一个内容
+        for (const QFileInfo& entry : entries)
+        {
+            QString nextSrc = entry.filePath();      // 下一级 源路径（文件/文件夹）
+            QString nextDst = dstPath + "/" + entry.fileName();    // 下一级 目标路径
+            if (entry.isDir())   // 如果是子文件夹的话，递归调用自己，继续复制
+            {
+                if (!copyRecursively(nextSrc, nextDst))    // 递归调用
+                    return false;
+            }
+            else
+            {
+                if (!QFile::copy(nextSrc, nextDst))     // 如果是文件，直接调用QFile::copy复制文件
+                    return false;
+            }
+        }
+        return true;     // 整个文件夹遍历复制完成 → return true
+    }
+
+    // 复制单个文件
+//    QDir parentDir(QFileInfo(dstPath).absolutePath());
+//    if (!parentDir.exists() && !parentDir.mkpath(parentDir.path()))
+//        return false;
+    return QFile::copy(srcPath, dstPath);    // 单个文件直接复制
+}
 
 MyTcpSocket::MyTcpSocket()
 {
@@ -548,6 +597,96 @@ void MyTcpSocket::handleDownloadFileRequest(PDU* pdu)
     }
 }
 
+// 分享：处理发送者 -> 服务器请求
+void MyTcpSocket::handleShareFileRequest(PDU* pdu)
+{
+    // caData: 接收者用户名
+    char friendName[32];
+    memcpy(friendName, pdu->caData, 32);
+
+    // caMsg: 源路径(发送者在服务器上的绝对路径)
+    char path[pdu->uiMsgLen];
+    memcpy(path, pdu->caMsg, pdu->uiMsgLen);
+    qDebug() << "path:" << path;
+
+    // 转发邀请给接收者
+    PDU* invitePDU = makePDU(pdu->uiMsgLen);
+    invitePDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_INVITE);
+    memcpy(invitePDU->caData, m_username.toStdString().c_str(), 32);    // 邀请者的用户名
+    memcpy(invitePDU->caMsg, path, pdu->uiMsgLen);                      // 文件路径
+    MyTcpServer::getInstance().forwardPDU(invitePDU, friendName);
+    free(invitePDU);
+}
+
+// 分享：接收者确认接收 -> 服务器拷贝到接收者目录
+void MyTcpSocket::handleShareFileAccept(PDU* pdu)
+{
+    // caData: 发送者用户名
+    char senderName[32];
+    memcpy(senderName, pdu->caData, 32);
+
+    // caMsg: 源路径(发送者在服务器上的绝对路径)
+    char srcPath[pdu->uiMsgLen];
+    memcpy(srcPath, pdu->caMsg, pdu->uiMsgLen);
+    qDebug() << "path:" << srcPath;
+
+    QFileInfo file(srcPath);
+    QString fileName = file.fileName();
+
+    QString dstPath = QString(ROOT_PATH) + "/" + m_username + "/" + fileName;   // 目标路径
+
+    if (QFileInfo(dstPath).exists())     // 如果目标路径存在
+    {
+        // 通知接收者
+        PDU* resultPdu = makePDU(0);
+        resultPdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_RESULT);
+        strcpy(resultPdu->caData, SHARE_FILE_TARGET_EXIST);
+        this->write((char*)resultPdu, resultPdu->uiPDULen);
+        free(resultPdu);
+
+        // 通知发送者(可选)
+        PDU* notifyToSender = makePDU(0);
+        notifyToSender->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_RESULT);
+        strcpy(notifyToSender->caData, SHARE_FILE_TARGET_EXIST);
+        MyTcpServer::getInstance().forwardPDU(notifyToSender, senderName);
+        free(notifyToSender);
+        return;
+    }
+
+    qDebug() << "srcPath:" << srcPath;
+    qDebug() << "dstPath:" << dstPath;
+    bool ok = copyRecursively(srcPath, dstPath);     // 复制文件或者文件夹
+
+    // 通知接收者
+    PDU* resultPdu = makePDU(0);
+    resultPdu->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_RESULT);
+    strcpy(resultPdu->caData, ok ? SHARE_FILE_SUCCESS : SHARE_FILE_FAILED);
+    this->write((char*)resultPdu, resultPdu->uiPDULen);
+    free(resultPdu);
+
+    // 通知发送者(可选)
+    PDU* notifyToSender = makePDU(0);
+    notifyToSender->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_RESULT);
+    strcpy(notifyToSender->caData, ok ? SHARE_FILE_SUCCESS : SHARE_FILE_FAILED);
+    MyTcpServer::getInstance().forwardPDU(notifyToSender, senderName);
+    free(notifyToSender);
+}
+
+// 分享：接收者拒绝 -> 服务器通知发送者
+void MyTcpSocket::handleShareFileReject(PDU* pdu)
+{
+    char senderNameRaw[32];
+    memcpy(senderNameRaw, pdu->caData, 32);
+    senderNameRaw[31] = '\0';
+    QString senderUsername = QString(senderNameRaw);
+
+    PDU* notifyToSender = makePDU(0);
+    notifyToSender->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_RESULT);
+    strcpy(notifyToSender->caData, SHARE_FILE_REJECTED);
+    MyTcpServer::getInstance().forwardPDU(notifyToSender, senderUsername);
+    free(notifyToSender);
+}
+
 
 void MyTcpSocket::recvMsg()
 {
@@ -675,6 +814,18 @@ void MyTcpSocket::recvMsg()
 
     case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST):   // 下载文件请求
         handleDownloadFileRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_REQUEST):       // 分享请求
+        handleShareFileRequest(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_ACCEPT):        // 接收方接受分享
+        handleShareFileAccept(pdu);
+        break;
+
+    case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_REJECT):        // 接收方拒绝分享
+        handleShareFileReject(pdu);
         break;
 
     default:

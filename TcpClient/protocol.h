@@ -22,6 +22,12 @@ typedef unsigned int uint;
 #define TRANSFER_DATA_FAILED    "transfer data failed"
 #define TRANSFER_DATA_SUCCESSED "transfer data successed"
 
+#define SHARE_FILE_SUCCESS     "share file success"
+#define SHARE_FILE_FAILED      "share file failed"
+#define SHARE_FILE_REJECTED    "share file rejected"
+#define SHARE_FILE_SOURCE_INVALID "share file source invalid"
+#define SHARE_FILE_TARGET_EXIST   "share file target already exist"
+
 enum class ENUM_MSG_TYPE
 {
     ENUM_MSG_TYPE_MIN = 0,             // 最小值，用于边界检查
@@ -80,6 +86,12 @@ enum class ENUM_MSG_TYPE
 
     ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST,    // 下载文件请求
     ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND,    // 下载文件回复
+
+    ENUM_MSG_TYPE_SHARE_FILE_REQUEST,      // 分享请求(发送者->服务器)
+    ENUM_MSG_TYPE_SHARE_FILE_INVITE,       // 分享邀请(服务器->被分享者)
+    ENUM_MSG_TYPE_SHARE_FILE_ACCEPT,       // 接收确认(被分享者->服务器)
+    ENUM_MSG_TYPE_SHARE_FILE_REJECT,       // 拒绝分享(被分享者->服务器)
+    ENUM_MSG_TYPE_SHARE_FILE_RESULT,       // 分享结果(服务器->双方)
 
     ENUM_MSG_TYPE_MAX = 100,           // 选一个uint内的最大值，用于边界检查
 };

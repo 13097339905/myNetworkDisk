@@ -89,6 +89,15 @@ private:
 
     // 处理下载文件的请求
     void handleDownloadFileRequest(PDU* pdu);
+
+    // 分享：发送者->服务器
+    void handleShareFileRequest(PDU* pdu);
+
+    // 分享：接收者->服务器(确认接收)
+    void handleShareFileAccept(PDU* pdu);
+
+    // 分享：接收者->服务器(拒绝接收)
+    void handleShareFileReject(PDU* pdu);
 };
 
 #endif // MYTCPSOCKET_H

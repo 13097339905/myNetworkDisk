@@ -10,6 +10,7 @@
 #include "privatechat.h"
 #include <QTimer>
 #include <QThread>
+#include <QFileInfo>
 
 TcpClient::TcpClient(QWidget *parent)
     : QWidget(parent)
@@ -526,6 +527,53 @@ void TcpClient::handleDownloadFileRespond(PDU* pdu)
     }
 }
 
+// 处理分享邀请：被分享者弹窗确认，确认后发送 ACCEPT/REJECT 给服务器
+void TcpClient::handleShareFileInvite(PDU* pdu)
+{
+    // caData: 分享者用户名
+    char senderName[32];
+    memcpy(senderName, pdu->caData, 32);
+
+    // caMsg: 源路径(服务器端绝对路径)
+    char path[pdu->uiMsgLen];
+    memcpy(path, pdu->caMsg, pdu->uiMsgLen);
+    int pathLen = pdu->uiMsgLen;
+    qDebug() << "path:" << path;
+    QString fileName = QFileInfo(path).fileName();     // 利用QFileInfo获得完整路径的的文件名字，只会拿到最后的文件名字
+
+    QString question = QString("%1 share the file: %2\n, did you receive this file?").arg(senderName, fileName);   // 弹出询问窗口
+    QMessageBox::StandardButton btn = QMessageBox::question(this, "share file", question, QMessageBox::Yes | QMessageBox::No);
+
+    PDU* reqPDU = makePDU(pathLen);
+    if (btn == QMessageBox::Yes)     // 如果确认的话，就设置消息类型为确认接收
+    {
+        reqPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_ACCEPT);
+    }
+    else
+    {   
+        reqPDU->uiMsgType = static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_REJECT);
+    }
+    memcpy(reqPDU->caData, senderName, 32);      // 发送者的名字
+    memcpy(reqPDU->caMsg, path, pathLen);        // 发送的文件的路径再发给服务器，服务器根据消息类型决定是否分享文件
+    m_tcpSocket.write((char*)reqPDU, reqPDU->uiPDULen);
+    free(reqPDU);
+    reqPDU = nullptr;
+}
+
+// 处理分享结果：服务器拷贝成功/失败或被拒绝
+void TcpClient::handleShareFileResult(PDU* pdu)
+{
+    // caData: 结果文本
+    QString result = QString(pdu->caData).trimmed();
+    QMessageBox::information(this, "share file", result);
+
+    if (result == SHARE_FILE_SUCCESS)
+    {
+        // 刷新当前目录，便于展示新文件/文件夹
+        mainMenu::getInstance().emitFlushFileSignal();
+    }
+}
+
 //void TcpClient::recvMsg()
 //{
 ////    qDebug() << m_tcpSocket.bytesAvailable();
@@ -757,6 +805,12 @@ void TcpClient::recvMsg()
             break;
         case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND):
             handleDownloadFileRespond(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_INVITE):
+            handleShareFileInvite(pdu);
+            break;
+        case static_cast<uint>(ENUM_MSG_TYPE::ENUM_MSG_TYPE_SHARE_FILE_RESULT):
+            handleShareFileResult(pdu);
             break;
         default:
             break;

@@ -486,3 +486,35 @@ void mainMenu::on_downloadPushButton_clicked()
     free(pdu);
     pdu = nullptr;
 }
+
+// 点击共享按钮触发的槽函数
+void mainMenu::on_shareFilePushButton_clicked()
+{
+    QListWidgetItem* item = ui->fileListWidget->currentItem();     // 获取分享的文件路径
+    if (item == nullptr)
+    {
+        QMessageBox::information(this, "share file", "please select a file to share");
+        return;
+    }
+    QString fileName = item->text().split('\t')[0];      // 获取要下载的文件名
+    QString filePath = TcpClient::getInstance().getMyCurPath() + '/' + fileName;   // 拼接出要分享的文件的完整路径
+    // qDebug() << filePath;
+
+    // 取当前界面显示的好友列表(在线好友)，让分享窗口显示并可勾选
+    QStringList friendNames;
+    for (int i = 0; i < ui->friendListWidget->count(); i++)
+    {
+        QListWidgetItem* fItem = ui->friendListWidget->item(i);
+        if (fItem)
+            friendNames.push_back(fItem->text());
+    }
+//    if (friendNames.isEmpty())
+//    {
+//        QMessageBox::information(this, "share file", "your friend list is empty, please click flush friends first");
+//        return;
+//    }
+
+    shareFile::getInstance().setShareSourcePath(filePath);     // 将路径保存给分享文件页面
+    shareFile::getInstance().setFriendList(friendNames);       // 将好友名字传给分享文件页面，用来设置显示好友列表
+    shareFile::getInstance().show();  // 显示分享文件的页面
+}
